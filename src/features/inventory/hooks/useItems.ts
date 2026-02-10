@@ -3,6 +3,7 @@ import { supabase } from "../../../lib/supabaseClient";
 import type { Item, CreateItemInput } from "../../../types/inventory";
 
 const ITEMS_QUERY_KEY = ["items"];
+const TRANSACTIONS_QUERY_KEY = ["transactions"];
 
 // Fetch all items
 export const useItems = () => {
@@ -12,6 +13,7 @@ export const useItems = () => {
       const { data, error } = await supabase
         .from("items")
         .select("*")
+        .eq("is_deleted", false)
         .order("name", { ascending: true });
 
       if (error) throw error;
@@ -37,6 +39,7 @@ export const useCreateItem = () => {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ITEMS_QUERY_KEY });
+      queryClient.invalidateQueries({ queryKey: TRANSACTIONS_QUERY_KEY });
     },
   });
 };
@@ -50,6 +53,13 @@ export const useUpdateItem = () => {
       id,
       ...input
     }: Partial<Item> & { id: number }): Promise<Item> => {
+      // Fetch old item to compare quantity
+      const { data: oldItem } = await supabase
+        .from("items")
+        .select("quantity, name")
+        .eq("id", id)
+        .single();
+
       const { data, error } = await supabase
         .from("items")
         .update(input)
@@ -58,10 +68,24 @@ export const useUpdateItem = () => {
         .single();
 
       if (error) throw error;
+
+      // Log UPDATE transaction only if quantity changed
+      if (oldItem && input.quantity !== undefined && oldItem.quantity !== input.quantity) {
+        const diff = input.quantity - oldItem.quantity;
+        await supabase.from("transactions").insert({
+          item_id: id,
+          action_type: "UPDATE",
+          amount: diff,
+          note: `แก้ไขจำนวนจาก ${oldItem.quantity} เป็น ${input.quantity}`,
+          user_email: (await supabase.auth.getUser()).data.user?.email || "system",
+        });
+      }
+
       return data;
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ITEMS_QUERY_KEY });
+      queryClient.invalidateQueries({ queryKey: TRANSACTIONS_QUERY_KEY });
     },
   });
 };
@@ -72,12 +96,35 @@ export const useDeleteItem = () => {
 
   return useMutation({
     mutationFn: async (id: number): Promise<void> => {
-      const { error } = await supabase.from("items").delete().eq("id", id);
+      // Get item details before soft-deleting
+      const { data: item, error: fetchError } = await supabase
+        .from("items")
+        .select("name, quantity")
+        .eq("id", id)
+        .single();
+
+      if (fetchError) throw fetchError;
+
+      // Soft delete: mark as deleted
+      const { error } = await supabase
+        .from("items")
+        .update({ is_deleted: true, deleted_at: new Date().toISOString(), quantity: 0 })
+        .eq("id", id);
 
       if (error) throw error;
+
+      // Insert DELETE transaction record
+      await supabase.from("transactions").insert({
+        item_id: id,
+        action_type: "DELETE",
+        amount: -(item?.quantity || 0),
+        note: `ลบสินค้า: ${item?.name || 'unknown'}`,
+        user_email: (await supabase.auth.getUser()).data.user?.email || 'system',
+      });
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ITEMS_QUERY_KEY });
+      queryClient.invalidateQueries({ queryKey: TRANSACTIONS_QUERY_KEY });
     },
   });
 };

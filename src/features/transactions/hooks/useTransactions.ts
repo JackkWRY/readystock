@@ -31,26 +31,28 @@ export const useTransactions = (limit?: number) => {
       if (txError) throw txError;
       if (!transactions || transactions.length === 0) return [];
 
-      // Get unique item IDs
-      const itemIds = [...new Set(transactions.map((tx) => tx.item_id))];
+      // Get unique item IDs (filter out null for deleted items)
+      const itemIds = [...new Set(transactions.map((tx) => tx.item_id).filter((id): id is number => id !== null))];
 
-      // Fetch item details
-      const { data: itemsData, error: itemsError } = await supabase
-        .from("items")
-        .select("id, name")
-        .in("id", itemIds);
+      // Fetch item details (only if there are valid IDs)
+      let itemsMap = new Map<number, { name: string }>();
+      if (itemIds.length > 0) {
+        const { data: itemsData, error: itemsError } = await supabase
+          .from("items")
+          .select("id, name")
+          .in("id", itemIds);
 
-      if (itemsError) throw itemsError;
+        if (itemsError) throw itemsError;
 
-      // Create a lookup map
-      const itemsMap = new Map(
-        (itemsData || []).map((item) => [item.id, { name: item.name }])
-      );
+        itemsMap = new Map(
+          (itemsData || []).map((item) => [item.id, { name: item.name }])
+        );
+      }
 
       // Merge transaction with item details
       return transactions.map((tx) => ({
         ...tx,
-        items: itemsMap.get(tx.item_id) || undefined,
+        items: tx.item_id ? itemsMap.get(tx.item_id) || undefined : undefined,
       }));
     },
   });
@@ -77,7 +79,7 @@ export const useCreateTransaction = () => {
         .from("transactions")
         .insert({
           item_id: itemId,
-          action_type: "STOCK_IN",
+          action_type: "RECEIVE",
           amount: amount,
           user_email: userEmail || null,
           note: note || null,

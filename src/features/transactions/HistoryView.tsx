@@ -5,6 +5,8 @@ import {
   PlusCircleOutlined,
   SendOutlined,
   SyncOutlined,
+  AppstoreAddOutlined,
+  DeleteOutlined,
 } from "@ant-design/icons";
 import { useTransactions, type TransactionWithItem } from "./hooks/useTransactions";
 import type { TransactionType } from "../../types/inventory";
@@ -13,9 +15,11 @@ import dayjs from "dayjs";
 const { Title } = Typography;
 
 const typeConfig: Record<TransactionType, { color: string; icon: React.ReactNode; label: string }> = {
-  STOCK_IN: { color: "success", icon: <PlusCircleOutlined />, label: "รับเข้า" },
+  RECEIVE: { color: "success", icon: <PlusCircleOutlined />, label: "รับเข้า" },
   WITHDRAW: { color: "error", icon: <SendOutlined />, label: "เบิกออก" },
-  ADJUST: { color: "processing", icon: <SyncOutlined />, label: "ปรับยอด" },
+  UPDATE: { color: "processing", icon: <SyncOutlined />, label: "ปรับยอด" },
+  CREATE: { color: "cyan", icon: <AppstoreAddOutlined />, label: "สร้างสินค้า" },
+  DELETE: { color: "red", icon: <DeleteOutlined />, label: "ลบสินค้า" },
 };
 
 export const HistoryView: React.FC = () => {
@@ -39,9 +43,17 @@ export const HistoryView: React.FC = () => {
     {
       title: "สินค้า",
       key: "item",
-      render: (_, record) => (
-        <span style={{ fontWeight: 500 }}>{record.items?.name || "-"}</span>
-      ),
+      render: (_, record) => {
+        if (record.items?.name) {
+          return <span style={{ fontWeight: 500 }}>{record.items.name}</span>;
+        }
+        // For deleted items (item_id = null), extract name from note
+        if (record.action_type === "DELETE" && record.note) {
+          const match = record.note.match(/ลบสินค้า:\s*(.+)/);
+          return <span style={{ fontWeight: 500, textDecoration: "line-through", opacity: 0.6 }}>{match?.[1] || record.note}</span>;
+        }
+        return <span style={{ opacity: 0.5 }}>-</span>;
+      },
     },
     {
       title: "ประเภท",
@@ -66,16 +78,25 @@ export const HistoryView: React.FC = () => {
       key: "amount",
       width: 100,
       align: "center",
-      render: (amount: number, record) => (
-        <span
-          style={{
-            fontWeight: 600,
-            color: record.action_type === "STOCK_IN" ? "#52c41a" : record.action_type === "WITHDRAW" ? "#ff4d4f" : "#1890ff",
-          }}
-        >
-          {amount > 0 ? `+${amount}` : amount}
-        </span>
-      ),
+      render: (amount: number, record) => {
+        const colorMap: Record<string, string> = {
+          RECEIVE: "#52c41a",
+          CREATE: "#13c2c2",
+          WITHDRAW: "#ff4d4f",
+          DELETE: "#ff4d4f",
+          UPDATE: "#1890ff",
+        };
+        return (
+          <span
+            style={{
+              fontWeight: 600,
+              color: colorMap[record.action_type] || "#1890ff",
+            }}
+          >
+            {amount > 0 ? `+${amount}` : amount}
+          </span>
+        );
+      },
     },
     {
       title: "หมายเหตุ",
@@ -114,9 +135,11 @@ export const HistoryView: React.FC = () => {
             style={{ width: 140 }}
             options={[
               { value: "all", label: "ทั้งหมด" },
-              { value: "STOCK_IN", label: "รับเข้า" },
+              { value: "RECEIVE", label: "รับเข้า" },
               { value: "WITHDRAW", label: "เบิกออก" },
-              { value: "ADJUST", label: "ปรับยอด" },
+              { value: "UPDATE", label: "ปรับยอด" },
+              { value: "CREATE", label: "สร้างสินค้า" },
+              { value: "DELETE", label: "ลบสินค้า" },
             ]}
           />
         </Space>
