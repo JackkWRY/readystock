@@ -51,7 +51,17 @@ src/
 
 - **Node.js** >= 18
 - **npm** >= 9
-- A [Supabase](https://supabase.com/) project with the required tables and RPC functions
+- a [Supabase](https://supabase.com/) project
+  - Run the SQL commands in `supabase/schema.sql` in your Supabase SQL Editor to set up tables and functions.
+
+### Manual Database Setup
+
+If you prefer to set up the database manually, you can execute the SQL commands found in `supabase/schema.sql`. This file contains:
+
+1.  **Table Definitions**: `profiles`, `items`, `transactions`
+2.  **RLS Policies**: Basic policies for data access
+3.  **Triggers**: Auto-create user profile, auto-log item creation
+4.  **RPC Functions**: `receive_item` and `withdraw_item` for stock management
 
 ### Installation
 
