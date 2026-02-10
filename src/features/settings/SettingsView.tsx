@@ -4,21 +4,17 @@ import {
   Avatar,
   Space,
   Divider,
-  Switch,
-  Form,
   Button,
   message,
 } from "antd";
 import {
   UserOutlined,
-  BellOutlined,
-  SafetyCertificateOutlined,
   InfoCircleOutlined,
   LogoutOutlined,
 } from "@ant-design/icons";
 import { useAuthStore } from "../../store/authStore";
 
-const { Title, Text, Paragraph } = Typography;
+const { Title, Text } = Typography;
 
 export const SettingsView: React.FC = () => {
   const { user, role, logout } = useAuthStore();
@@ -63,96 +59,6 @@ export const SettingsView: React.FC = () => {
                   {roleLabel}
                 </Text>
               </div>
-            </div>
-          </Space>
-        </Card>
-
-        {/* Notifications Section */}
-        <Card
-          className="glass-card"
-          style={{ marginBottom: 16 }}
-          title={
-            <Space>
-              <BellOutlined />
-              <span>การแจ้งเตือน</span>
-            </Space>
-          }
-        >
-          <Form layout="horizontal" labelCol={{ span: 18 }} wrapperCol={{ span: 6 }}>
-            <Form.Item
-              label={
-                <div>
-                  <Text style={{ color: "#fff" }}>แจ้งเตือนสินค้าใกล้หมด</Text>
-                  <Paragraph
-                    style={{
-                      color: "rgba(255,255,255,0.5)",
-                      fontSize: 12,
-                      margin: 0,
-                    }}
-                  >
-                    แสดงแจ้งเตือนเมื่อสินค้าเหลือน้อยกว่าจำนวนขั้นต่ำ
-                  </Paragraph>
-                </div>
-              }
-              style={{ marginBottom: 16 }}
-            >
-              <Switch defaultChecked />
-            </Form.Item>
-
-            <Form.Item
-              label={
-                <div>
-                  <Text style={{ color: "#fff" }}>แจ้งเตือนการเบิกสินค้า</Text>
-                  <Paragraph
-                    style={{
-                      color: "rgba(255,255,255,0.5)",
-                      fontSize: 12,
-                      margin: 0,
-                    }}
-                  >
-                    แจ้งเตือนเมื่อมีการเบิกสินค้าออกจากคลัง
-                  </Paragraph>
-                </div>
-              }
-              style={{ marginBottom: 0 }}
-            >
-              <Switch defaultChecked />
-            </Form.Item>
-          </Form>
-        </Card>
-
-        {/* Security Section */}
-        <Card
-          className="glass-card"
-          style={{ marginBottom: 16 }}
-          title={
-            <Space>
-              <SafetyCertificateOutlined />
-              <span>ความปลอดภัย</span>
-            </Space>
-          }
-        >
-          <Space orientation="vertical" style={{ width: "100%" }}>
-            <div
-              style={{
-                display: "flex",
-                justifyContent: "space-between",
-                alignItems: "center",
-              }}
-            >
-              <div>
-                <Text style={{ color: "#fff" }}>รหัสผ่าน</Text>
-                <Paragraph
-                  style={{
-                    color: "rgba(255,255,255,0.5)",
-                    fontSize: 12,
-                    margin: 0,
-                  }}
-                >
-                  เปลี่ยนรหัสผ่านเพื่อความปลอดภัย
-                </Paragraph>
-              </div>
-              <Button size="small">เปลี่ยนรหัสผ่าน</Button>
             </div>
           </Space>
         </Card>
