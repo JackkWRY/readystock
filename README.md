@@ -1,31 +1,134 @@
-# React + TypeScript + Vite
+# 📦 ReadyStock
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+> ระบบจัดการสต็อกสินค้าอัจฉริยะ — Inventory Management System
 
-Currently, two official plugins are available:
+A modern inventory management desktop application built with **React**, **TypeScript**, **Electron**, and **Supabase**.
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react/README.md) uses [Babel](https://babeljs.io/) for Fast Refresh
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react-swc) uses [SWC](https://swc.rs/) for Fast Refresh
+---
 
-## Expanding the ESLint configuration
+## ✨ Features
 
-If you are developing a production application, we recommend updating the configuration to enable type aware lint rules:
+- **📋 Inventory Management** — Add, edit, and soft-delete items with category support
+- **📥 Stock In / 📤 Stock Out** — Receive and withdraw items via RPC with automatic history logging
+- **📊 Transaction History** — Full audit trail with filterable action types (CREATE, RECEIVE, WITHDRAW, UPDATE, DELETE)
+- **⚠️ Low Stock Alerts** — Visual warnings when items fall below minimum quantity thresholds
+- **🔐 Authentication** — Supabase-based login with role-based access (Admin / Staff)
+- **🗑️ Soft Delete** — Items are never permanently removed; history remains fully trackable
+- **🔄 Real-time Sync** — Automatic cache invalidation via React Query
 
-- Configure the top-level `parserOptions` property like this:
+## 🛠️ Tech Stack
 
-```js
-export default {
-  // other rules...
-  parserOptions: {
-    ecmaVersion: 'latest',
-    sourceType: 'module',
-    project: ['./tsconfig.json', './tsconfig.node.json'],
-    tsconfigRootDir: __dirname,
-  },
-}
+| Layer                | Technology                         |
+| -------------------- | ---------------------------------- |
+| **Frontend**         | React 18, TypeScript, Ant Design 6 |
+| **State Management** | Zustand, TanStack React Query      |
+| **Backend**          | Supabase (PostgreSQL, Auth, RPC)   |
+| **Desktop**          | Electron 30                        |
+| **Build Tool**       | Vite 5                             |
+
+## 📁 Project Structure
+
+```
+src/
+├── features/
+│   ├── auth/             # Login page & auth logic
+│   ├── dashboard/        # Layout, sidebar navigation
+│   ├── inventory/        # Item CRUD, soft delete
+│   │   ├── components/   # ItemFormModal
+│   │   └── hooks/        # useItems, useCreateItem, useUpdateItem, useDeleteItem
+│   ├── transactions/     # Stock in/out, history view
+│   │   ├── components/   # StockTransactionForm
+│   │   └── hooks/        # useTransactions, useReceiveItem, useWithdrawItem
+│   └── settings/         # App settings
+├── lib/                  # Supabase client, React Query client
+├── store/                # Zustand auth store
+└── types/                # TypeScript interfaces (Item, Transaction, etc.)
 ```
 
-- Replace `plugin:@typescript-eslint/recommended` to `plugin:@typescript-eslint/recommended-type-checked` or `plugin:@typescript-eslint/strict-type-checked`
-- Optionally add `plugin:@typescript-eslint/stylistic-type-checked`
-- Install [eslint-plugin-react](https://github.com/jsx-eslint/eslint-plugin-react) and add `plugin:react/recommended` & `plugin:react/jsx-runtime` to the `extends` list
-# readystock
+## 🚀 Getting Started
+
+### Prerequisites
+
+- **Node.js** >= 18
+- **npm** >= 9
+- A [Supabase](https://supabase.com/) project with the required tables and RPC functions
+
+### Installation
+
+```bash
+# Clone the repository
+git clone https://github.com/JackkWRY/readystock.git
+cd readystock
+
+# Install dependencies
+npm install
+```
+
+### Environment Variables
+
+Create a `.env` file in the project root:
+
+```env
+VITE_SUPABASE_URL=https://your-project.supabase.co
+VITE_SUPABASE_ANON_KEY=your-anon-key
+```
+
+### Development
+
+```bash
+npm run dev
+```
+
+### Production Build
+
+```bash
+npm run build
+```
+
+## 🗄️ Database Schema
+
+### Tables
+
+#### `items`
+
+| Column         | Type        | Description         |
+| -------------- | ----------- | ------------------- |
+| `id`           | bigint      | Primary key         |
+| `name`         | text        | Item name           |
+| `category`     | text        | Category (nullable) |
+| `quantity`     | integer     | Current stock       |
+| `min_quantity` | integer     | Low stock threshold |
+| `is_deleted`   | boolean     | Soft delete flag    |
+| `deleted_at`   | timestamptz | Deletion timestamp  |
+| `created_at`   | timestamptz | Creation timestamp  |
+
+#### `transactions`
+
+| Column        | Type        | Description                                                 |
+| ------------- | ----------- | ----------------------------------------------------------- |
+| `id`          | bigint      | Primary key                                                 |
+| `item_id`     | bigint      | FK → items (SET NULL on delete)                             |
+| `action_type` | text        | `CREATE` \| `RECEIVE` \| `WITHDRAW` \| `UPDATE` \| `DELETE` |
+| `amount`      | integer     | Quantity change (+/-)                                       |
+| `note`        | text        | Description                                                 |
+| `user_email`  | text        | Who performed the action                                    |
+| `created_at`  | timestamptz | Timestamp                                                   |
+
+### Database Triggers
+
+| Trigger                      | Event                   | Description                   |
+| ---------------------------- | ----------------------- | ----------------------------- |
+| `trg_log_item_create_update` | AFTER INSERT on `items` | Auto-logs CREATE transactions |
+
+> Stock In/Out and Update transactions are logged by the application code. Soft delete transactions are logged by `useDeleteItem`.
+
+### RPC Functions
+
+| Function                                                   | Description                       |
+| ---------------------------------------------------------- | --------------------------------- |
+| `receive_item(t_item_id, t_amount, t_note, t_user_email)`  | Increases stock and logs RECEIVE  |
+| `withdraw_item(t_item_id, t_amount, t_note, t_user_email)` | Decreases stock and logs WITHDRAW |
+
+## 📄 License
+
+This project is private.
