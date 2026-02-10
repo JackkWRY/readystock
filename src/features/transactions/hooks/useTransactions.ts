@@ -1,6 +1,6 @@
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "../../../lib/supabaseClient";
-import type { Transaction, CreateTransactionInput } from "../../../types/inventory";
+import type { Transaction } from "../../../types/inventory";
 
 const TRANSACTIONS_QUERY_KEY = ["transactions"];
 const ITEMS_QUERY_KEY = ["items"];
@@ -9,7 +9,6 @@ const ITEMS_QUERY_KEY = ["items"];
 export interface TransactionWithItem extends Transaction {
   items?: {
     name: string;
-    sku: string;
   };
 }
 
@@ -38,14 +37,14 @@ export const useTransactions = (limit?: number) => {
       // Fetch item details
       const { data: itemsData, error: itemsError } = await supabase
         .from("items")
-        .select("id, name, sku")
+        .select("id, name")
         .in("id", itemIds);
 
       if (itemsError) throw itemsError;
 
       // Create a lookup map
       const itemsMap = new Map(
-        (itemsData || []).map((item) => [item.id, { name: item.name, sku: item.sku }])
+        (itemsData || []).map((item) => [item.id, { name: item.name }])
       );
 
       // Merge transaction with item details
@@ -62,41 +61,44 @@ export const useCreateTransaction = () => {
   const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: async (input: CreateTransactionInput): Promise<Transaction> => {
+    mutationFn: async ({
+      itemId,
+      amount,
+      userEmail,
+      note,
+    }: {
+      itemId: number;
+      amount: number;
+      userEmail?: string;
+      note?: string;
+    }): Promise<Transaction> => {
       // First, create the transaction record
       const { data: transaction, error: txError } = await supabase
         .from("transactions")
-        .insert(input)
+        .insert({
+          item_id: itemId,
+          action_type: "STOCK_IN",
+          amount: amount,
+          user_email: userEmail || null,
+          note: note || null,
+        })
         .select()
         .single();
 
       if (txError) throw txError;
 
-      // Then update the item quantity
-      if (input.type === "in") {
-        const { error: updateError } = await supabase.rpc("increment_item_quantity", {
-          p_item_id: input.item_id,
-          p_quantity: input.quantity,
-        });
-        
-        // Fallback: direct update if RPC doesn't exist
-        if (updateError) {
-          const { data: item } = await supabase
-            .from("items")
-            .select("quantity")
-            .eq("id", input.item_id)
-            .single();
-          
-          if (item) {
-            await supabase
-              .from("items")
-              .update({ 
-                quantity: item.quantity + input.quantity,
-                updated_at: new Date().toISOString()
-              })
-              .eq("id", input.item_id);
-          }
-        }
+      // Then update the item quantity (direct update)
+      const { data: item } = await supabase
+        .from("items")
+        .select("quantity")
+        .eq("id", itemId)
+        .single();
+
+      if (item) {
+        await supabase
+          .from("items")
+          .update({ quantity: item.quantity + amount })
+          .eq("id", itemId);
       }
 
       return transaction;
@@ -115,26 +117,25 @@ export const useWithdrawItem = () => {
   return useMutation({
     mutationFn: async ({
       itemId,
-      quantity,
+      amount,
+      userEmail,
       note,
-      performedBy,
     }: {
-      itemId: string;
-      quantity: number;
+      itemId: number;
+      amount: number;
+      userEmail?: string;
       note?: string;
-      performedBy?: string;
     }): Promise<void> => {
-      // Try using the RPC function first
+      // Try using the RPC function first (matches DB schema)
       const { error: rpcError } = await supabase.rpc("withdraw_item", {
-        p_item_id: itemId,
-        p_quantity: quantity,
-        p_note: note || null,
-        p_performed_by: performedBy || null,
+        t_item_id: itemId,
+        t_amount: amount,
+        t_user_email: userEmail || null,
+        t_note: note || null,
       });
 
       if (rpcError) {
         // Fallback: manual transaction if RPC fails
-        // Check current quantity
         const { data: item, error: fetchError } = await supabase
           .from("items")
           .select("quantity")
@@ -143,15 +144,15 @@ export const useWithdrawItem = () => {
 
         if (fetchError) throw fetchError;
         if (!item) throw new Error("Item not found");
-        if (item.quantity < quantity) throw new Error("Insufficient stock");
+        if (item.quantity < amount) throw new Error("จำนวนอุปกรณ์ในสต็อกไม่เพียงพอ");
 
         // Create transaction record
         const { error: txError } = await supabase.from("transactions").insert({
           item_id: itemId,
-          type: "out",
-          quantity: quantity,
+          action_type: "WITHDRAW",
+          amount: -amount,
+          user_email: userEmail || null,
           note: note || null,
-          performed_by: performedBy || null,
         });
 
         if (txError) throw txError;
@@ -159,10 +160,7 @@ export const useWithdrawItem = () => {
         // Update item quantity
         const { error: updateError } = await supabase
           .from("items")
-          .update({
-            quantity: item.quantity - quantity,
-            updated_at: new Date().toISOString(),
-          })
+          .update({ quantity: item.quantity - amount })
           .eq("id", itemId);
 
         if (updateError) throw updateError;

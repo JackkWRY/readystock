@@ -39,9 +39,7 @@ export const InventoryView: React.FC = () => {
     return items.filter(
       (item) =>
         item.name.toLowerCase().includes(lowerSearch) ||
-        item.sku.toLowerCase().includes(lowerSearch) ||
-        item.category?.toLowerCase().includes(lowerSearch) ||
-        item.location?.toLowerCase().includes(lowerSearch)
+        item.category?.toLowerCase().includes(lowerSearch)
     );
   }, [items, searchText]);
 
@@ -50,7 +48,7 @@ export const InventoryView: React.FC = () => {
     setModalOpen(true);
   };
 
-  const handleDelete = async (id: string) => {
+  const handleDelete = async (id: number) => {
     try {
       await deleteItem.mutateAsync(id);
       messageApi.success("ลบสินค้าสำเร็จ");
@@ -82,21 +80,17 @@ export const InventoryView: React.FC = () => {
       ),
     },
     {
-      title: "รหัส SKU",
-      dataIndex: "sku",
-      key: "sku",
-      width: 140,
-      render: (sku: string) => (
-        <Tag color="blue" style={{ fontFamily: "monospace" }}>
-          {sku}
-        </Tag>
-      ),
+      title: "หมวดหมู่",
+      dataIndex: "category",
+      key: "category",
+      width: 160,
+      render: (cat: string | null) => cat || "-",
     },
     {
       title: "คงเหลือ",
       dataIndex: "quantity",
       key: "quantity",
-      width: 100,
+      width: 120,
       align: "center",
       sorter: (a, b) => a.quantity - b.quantity,
       render: (qty: number, record) => (
@@ -109,22 +103,8 @@ export const InventoryView: React.FC = () => {
       title: "ขั้นต่ำ",
       dataIndex: "min_quantity",
       key: "min_quantity",
-      width: 80,
+      width: 100,
       align: "center",
-    },
-    {
-      title: "หมวดหมู่",
-      dataIndex: "category",
-      key: "category",
-      width: 140,
-      render: (cat: string | null) => cat || "-",
-    },
-    {
-      title: "ตำแหน่ง",
-      dataIndex: "location",
-      key: "location",
-      width: 120,
-      render: (loc: string | null) => loc || "-",
     },
     {
       title: "จัดการ",

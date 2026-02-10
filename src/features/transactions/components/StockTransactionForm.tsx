@@ -26,23 +26,22 @@ export const StockTransactionForm: React.FC<StockTransactionFormProps> = ({ type
   const selectedItemId = Form.useWatch("item_id", form);
   const selectedItem = items.find((item) => item.id === selectedItemId);
 
-  const handleSubmit = async (values: { item_id: string; quantity: number; note?: string }) => {
+  const handleSubmit = async (values: { item_id: number; quantity: number; note?: string }) => {
     try {
       if (type === "in") {
         await createTransaction.mutateAsync({
-          item_id: values.item_id,
-          type: "in",
-          quantity: values.quantity,
-          note: values.note || null,
-          performed_by: user?.email || null,
+          itemId: values.item_id,
+          amount: values.quantity,
+          userEmail: user?.email || undefined,
+          note: values.note,
         });
         messageApi.success(`รับสินค้าเข้าคลัง ${values.quantity} ชิ้น สำเร็จ`);
       } else {
         await withdrawItem.mutateAsync({
           itemId: values.item_id,
-          quantity: values.quantity,
+          amount: values.quantity,
+          userEmail: user?.email || undefined,
           note: values.note,
-          performedBy: user?.email,
         });
         messageApi.success(`เบิกสินค้า ${values.quantity} ชิ้น สำเร็จ`);
       }
@@ -57,7 +56,7 @@ export const StockTransactionForm: React.FC<StockTransactionFormProps> = ({ type
     }
   };
 
-  const filterOption = (input: string, option?: { label: string; value: string }) => {
+  const filterOption = (input: string, option?: { label: string; value: number }) => {
     return (option?.label ?? "").toLowerCase().includes(input.toLowerCase());
   };
 
@@ -92,7 +91,7 @@ export const StockTransactionForm: React.FC<StockTransactionFormProps> = ({ type
               filterOption={filterOption}
               options={items.map((item: Item) => ({
                 value: item.id,
-                label: `${item.name} (${item.sku})`,
+                label: `${item.name}${item.category ? ` (${item.category})` : ""}`,
               }))}
             />
           </Form.Item>
@@ -121,9 +120,9 @@ export const StockTransactionForm: React.FC<StockTransactionFormProps> = ({ type
                     {selectedItem.quantity} ชิ้น
                   </Text>
                 </Text>
-                {selectedItem.location && (
+                {selectedItem.category && (
                   <Text style={{ color: "rgba(255,255,255,0.5)", fontSize: 12 }}>
-                    ตำแหน่ง: {selectedItem.location}
+                    หมวดหมู่: {selectedItem.category}
                   </Text>
                 )}
               </Space>

@@ -78,7 +78,7 @@ export const ItemFormModal: React.FC<ItemFormModalProps> = ({
           style={{ marginTop: 24 }}
           initialValues={{
             quantity: 0,
-            min_quantity: 0,
+            min_quantity: 5,
           }}
         >
           <Form.Item
@@ -89,12 +89,8 @@ export const ItemFormModal: React.FC<ItemFormModalProps> = ({
             <Input placeholder="เช่น สกรูหัวกลม 3 นิ้ว" />
           </Form.Item>
 
-          <Form.Item
-            name="sku"
-            label="รหัสสินค้า (SKU)"
-            rules={[{ required: true, message: "กรุณากรอกรหัสสินค้า" }]}
-          >
-            <Input placeholder="เช่น SCR-001" />
+          <Form.Item name="category" label="หมวดหมู่">
+            <Input placeholder="เช่น อุปกรณ์ช่าง" />
           </Form.Item>
 
           <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 16 }}>
@@ -118,18 +114,10 @@ export const ItemFormModal: React.FC<ItemFormModalProps> = ({
               <InputNumber
                 min={0}
                 style={{ width: "100%" }}
-                placeholder="0"
+                placeholder="5"
               />
             </Form.Item>
           </div>
-
-          <Form.Item name="category" label="หมวดหมู่">
-            <Input placeholder="เช่น อุปกรณ์ช่าง" />
-          </Form.Item>
-
-          <Form.Item name="location" label="ตำแหน่งจัดเก็บ">
-            <Input placeholder="เช่น ชั้น A-01" />
-          </Form.Item>
         </Form>
       </Modal>
     </>

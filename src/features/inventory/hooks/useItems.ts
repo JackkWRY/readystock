@@ -49,10 +49,10 @@ export const useUpdateItem = () => {
     mutationFn: async ({
       id,
       ...input
-    }: Partial<Item> & { id: string }): Promise<Item> => {
+    }: Partial<Item> & { id: number }): Promise<Item> => {
       const { data, error } = await supabase
         .from("items")
-        .update({ ...input, updated_at: new Date().toISOString() })
+        .update(input)
         .eq("id", id)
         .select()
         .single();
@@ -71,7 +71,7 @@ export const useDeleteItem = () => {
   const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: async (id: string): Promise<void> => {
+    mutationFn: async (id: number): Promise<void> => {
       const { error } = await supabase.from("items").delete().eq("id", id);
 
       if (error) throw error;

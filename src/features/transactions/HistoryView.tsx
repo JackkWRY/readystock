@@ -13,9 +13,9 @@ import dayjs from "dayjs";
 const { Title } = Typography;
 
 const typeConfig: Record<TransactionType, { color: string; icon: React.ReactNode; label: string }> = {
-  in: { color: "success", icon: <PlusCircleOutlined />, label: "รับเข้า" },
-  out: { color: "error", icon: <SendOutlined />, label: "เบิกออก" },
-  adjust: { color: "processing", icon: <SyncOutlined />, label: "ปรับยอด" },
+  STOCK_IN: { color: "success", icon: <PlusCircleOutlined />, label: "รับเข้า" },
+  WITHDRAW: { color: "error", icon: <SendOutlined />, label: "เบิกออก" },
+  ADJUST: { color: "processing", icon: <SyncOutlined />, label: "ปรับยอด" },
 };
 
 export const HistoryView: React.FC = () => {
@@ -24,7 +24,7 @@ export const HistoryView: React.FC = () => {
 
   const filteredTransactions = typeFilter === "all"
     ? transactions
-    : transactions.filter((tx) => tx.type === typeFilter);
+    : transactions.filter((tx) => tx.action_type === typeFilter);
 
   const columns: ColumnsType<TransactionWithItem> = [
     {
@@ -40,44 +40,40 @@ export const HistoryView: React.FC = () => {
       title: "สินค้า",
       key: "item",
       render: (_, record) => (
-        <Space orientation="vertical" size={0}>
-          <span style={{ fontWeight: 500 }}>{record.items?.name || "-"}</span>
-          <Tag color="blue" style={{ fontFamily: "monospace", fontSize: 11 }}>
-            {record.items?.sku || "-"}
-          </Tag>
-        </Space>
+        <span style={{ fontWeight: 500 }}>{record.items?.name || "-"}</span>
       ),
     },
     {
       title: "ประเภท",
-      dataIndex: "type",
-      key: "type",
+      dataIndex: "action_type",
+      key: "action_type",
       width: 120,
       align: "center",
       render: (type: TransactionType) => {
         const config = typeConfig[type];
-        return (
+        return config ? (
           <Tag color={config.color} icon={config.icon}>
             {config.label}
           </Tag>
+        ) : (
+          <Tag>{type}</Tag>
         );
       },
     },
     {
       title: "จำนวน",
-      dataIndex: "quantity",
-      key: "quantity",
+      dataIndex: "amount",
+      key: "amount",
       width: 100,
       align: "center",
-      render: (qty: number, record) => (
+      render: (amount: number, record) => (
         <span
           style={{
             fontWeight: 600,
-            color: record.type === "in" ? "#52c41a" : record.type === "out" ? "#ff4d4f" : "#1890ff",
+            color: record.action_type === "STOCK_IN" ? "#52c41a" : record.action_type === "WITHDRAW" ? "#ff4d4f" : "#1890ff",
           }}
         >
-          {record.type === "in" ? "+" : record.type === "out" ? "-" : ""}
-          {qty}
+          {amount > 0 ? `+${amount}` : amount}
         </span>
       ),
     },
@@ -90,10 +86,10 @@ export const HistoryView: React.FC = () => {
     },
     {
       title: "ผู้ทำรายการ",
-      dataIndex: "performed_by",
-      key: "performed_by",
+      dataIndex: "user_email",
+      key: "user_email",
       width: 160,
-      render: (user: string | null) => user?.split("@")[0] || "-",
+      render: (email: string | null) => email?.split("@")[0] || "-",
     },
   ];
 
@@ -118,9 +114,9 @@ export const HistoryView: React.FC = () => {
             style={{ width: 140 }}
             options={[
               { value: "all", label: "ทั้งหมด" },
-              { value: "in", label: "รับเข้า" },
-              { value: "out", label: "เบิกออก" },
-              { value: "adjust", label: "ปรับยอด" },
+              { value: "STOCK_IN", label: "รับเข้า" },
+              { value: "WITHDRAW", label: "เบิกออก" },
+              { value: "ADJUST", label: "ปรับยอด" },
             ]}
           />
         </Space>
