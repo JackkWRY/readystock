@@ -45,20 +45,33 @@ export const useAuthStore = create<AuthState & AuthActions>((set, get) => ({
       const { data: { session } } = await supabase.auth.getSession();
 
       if (session) {
+        // Fetch role from profiles table
+        const { data: profile } = await supabase
+          .from("profiles")
+          .select("role")
+          .eq("id", session.user.id)
+          .single();
+
         set({
           user: session.user,
           session,
-          role: (session.user.user_metadata?.role as UserRole) || 'staff',
+          role: (profile?.role as UserRole) || 'staff',
         });
       }
 
       // Listen for auth state changes
-      supabase.auth.onAuthStateChange((_event, session) => {
+      supabase.auth.onAuthStateChange(async (_event, session) => {
         if (session) {
+          const { data: profile } = await supabase
+            .from("profiles")
+            .select("role")
+            .eq("id", session.user.id)
+            .single();
+
           set({
             user: session.user,
             session,
-            role: (session.user.user_metadata?.role as UserRole) || 'staff',
+            role: (profile?.role as UserRole) || 'staff',
           });
         } else {
           set({ user: null, session: null, role: null });

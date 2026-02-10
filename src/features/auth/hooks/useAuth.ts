@@ -45,8 +45,15 @@ export const useAuth = (): UseAuthReturn => {
 
       if (data.user) {
         setUser(data.user);
-        // Determine role based on email domain or metadata
-        const role = data.user.email?.includes("admin") ? "admin" : "staff";
+        
+        // Fetch role from profiles table
+        const { data: profile } = await supabase
+          .from("profiles")
+          .select("role")
+          .eq("id", data.user.id)
+          .single();
+
+        const role = (profile?.role as "admin" | "staff") || "staff";
         setRole(role);
         message.success("เข้าสู่ระบบสำเร็จ");
         return true;
