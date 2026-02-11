@@ -58,8 +58,8 @@ export const useTransactions = (limit?: number) => {
   });
 };
 
-// Create transaction (for stock in)
-export const useCreateTransaction = () => {
+// Receive item (Stock In) using RPC
+export const useReceiveItem = () => {
   const queryClient = useQueryClient();
 
   return useMutation({
@@ -73,37 +73,47 @@ export const useCreateTransaction = () => {
       amount: number;
       userEmail?: string;
       note?: string;
-    }): Promise<Transaction> => {
-      // First, create the transaction record
-      const { data: transaction, error: txError } = await supabase
-        .from("transactions")
-        .insert({
-          item_id: itemId,
-          action_type: "RECEIVE",
-          amount: amount,
-          user_email: userEmail || null,
-          note: note || null,
-        })
-        .select()
-        .single();
+    }): Promise<void> => {
+      const { error } = await supabase.rpc("receive_item", {
+        t_item_id: itemId,
+        t_amount: amount,
+        t_user_email: userEmail || null,
+        t_note: note || null,
+      });
 
-      if (txError) throw txError;
+      if (error) {
+        // Fallback: manual transaction if RPC fails (e.g. function doesn't exist yet)
+        console.warn("RPC receive_item failed, falling back to manual update:", error);
 
-      // Then update the item quantity (direct update)
-      const { data: item } = await supabase
-        .from("items")
-        .select("quantity")
-        .eq("id", itemId)
-        .single();
+        // 1. Create transaction record
+        const { error: txError } = await supabase
+          .from("transactions")
+          .insert({
+            item_id: itemId,
+            action_type: "RECEIVE",
+            amount: amount,
+            user_email: userEmail || null,
+            note: note || null,
+          });
 
-      if (item) {
-        await supabase
+        if (txError) throw txError;
+
+        // 2. Update item quantity
+        const { data: item } = await supabase
           .from("items")
-          .update({ quantity: item.quantity + amount })
-          .eq("id", itemId);
-      }
+          .select("quantity")
+          .eq("id", itemId)
+          .single();
 
-      return transaction;
+        if (item) {
+          const { error: updateError } = await supabase
+            .from("items")
+            .update({ quantity: item.quantity + amount })
+            .eq("id", itemId);
+            
+          if (updateError) throw updateError;
+        }
+      }
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: TRANSACTIONS_QUERY_KEY });

@@ -1,7 +1,7 @@
 import { Form, Select, InputNumber, Input, Button, message, Card, Space, Typography } from "antd";
 import { SendOutlined, PlusCircleOutlined } from "@ant-design/icons";
 import { useItems } from "../../inventory/hooks/useItems";
-import { useCreateTransaction, useWithdrawItem } from "../hooks/useTransactions";
+import { useReceiveItem, useWithdrawItem } from "../hooks/useTransactions";
 import { useAuthStore } from "../../../store/authStore";
 import type { Item } from "../../../types/inventory";
 
@@ -18,10 +18,10 @@ export const StockTransactionForm: React.FC<StockTransactionFormProps> = ({ type
   const { user } = useAuthStore();
 
   const { data: items = [], isLoading: itemsLoading } = useItems();
-  const createTransaction = useCreateTransaction();
+  const receiveItem = useReceiveItem();
   const withdrawItem = useWithdrawItem();
 
-  const isLoading = createTransaction.isPending || withdrawItem.isPending;
+  const isLoading = receiveItem.isPending || withdrawItem.isPending;
 
   const selectedItemId = Form.useWatch("item_id", form);
   const selectedItem = items.find((item) => item.id === selectedItemId);
@@ -29,7 +29,7 @@ export const StockTransactionForm: React.FC<StockTransactionFormProps> = ({ type
   const handleSubmit = async (values: { item_id: number; quantity: number; note?: string }) => {
     try {
       if (type === "in") {
-        await createTransaction.mutateAsync({
+        await receiveItem.mutateAsync({
           itemId: values.item_id,
           amount: values.quantity,
           userEmail: user?.email || undefined,
