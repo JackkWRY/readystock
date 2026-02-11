@@ -8,6 +8,8 @@ import { TransactionsView } from "./features/transactions/TransactionsView";
 import { HistoryView } from "./features/transactions/HistoryView";
 
 import { SettingsView } from "./features/settings/SettingsView";
+import { ErrorBoundary } from "./components/ErrorBoundary";
+import { GlobalErrorFallback } from "./components/GlobalErrorFallback";
 
 function App() {
   const { user, isLoading, initialize } = useAuthStore();
@@ -70,28 +72,30 @@ function App() {
         },
       }}
     >
-      {isLoading ? (
-        <div
-          style={{
-            minHeight: "100vh",
-            display: "flex",
-            alignItems: "center",
-            justifyContent: "center",
-          }}
-        >
-          <Spin size="large">
-            <div style={{ padding: 50, textAlign: "center", color: "rgba(255,255,255,0.6)" }}>
-              กำลังโหลด...
-            </div>
-          </Spin>
-        </div>
-      ) : user ? (
-        <DashboardLayout activeMenu={activeMenu} onMenuChange={setActiveMenu}>
-          {renderContent()}
-        </DashboardLayout>
-      ) : (
-        <LoginView />
-      )}
+      <ErrorBoundary fallback={GlobalErrorFallback}>
+        {isLoading ? (
+          <div
+            style={{
+              minHeight: "100vh",
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "center",
+            }}
+          >
+            <Spin size="large">
+              <div style={{ padding: 50, textAlign: "center", color: "rgba(255,255,255,0.6)" }}>
+                กำลังโหลด...
+              </div>
+            </Spin>
+          </div>
+        ) : user ? (
+          <DashboardLayout activeMenu={activeMenu} onMenuChange={setActiveMenu}>
+            {renderContent()}
+          </DashboardLayout>
+        ) : (
+          <LoginView />
+        )}
+      </ErrorBoundary>
     </ConfigProvider>
   );
 }

@@ -1,6 +1,7 @@
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "../../../lib/supabaseClient";
 import type { Item, CreateItemInput } from "../../../types/inventory";
+import { TransactionType } from "../../../constants/inventory";
 
 const ITEMS_QUERY_KEY = ["items"];
 const TRANSACTIONS_QUERY_KEY = ["transactions"];
@@ -74,7 +75,7 @@ export const useUpdateItem = () => {
         const diff = input.quantity - oldItem.quantity;
         await supabase.from("transactions").insert({
           item_id: id,
-          action_type: "UPDATE",
+          action_type: TransactionType.UPDATE,
           amount: diff,
           note: `แก้ไขจำนวนจาก ${oldItem.quantity} เป็น ${input.quantity}`,
           user_email: (await supabase.auth.getUser()).data.user?.email || "system",
@@ -116,7 +117,7 @@ export const useDeleteItem = () => {
       // Insert DELETE transaction record
       await supabase.from("transactions").insert({
         item_id: id,
-        action_type: "DELETE",
+        action_type: TransactionType.DELETE,
         amount: -(item?.quantity || 0),
         note: `ลบสินค้า: ${item?.name || 'unknown'}`,
         user_email: (await supabase.auth.getUser()).data.user?.email || 'system',

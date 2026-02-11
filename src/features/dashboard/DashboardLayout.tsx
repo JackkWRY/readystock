@@ -14,6 +14,7 @@ import {
 } from "@ant-design/icons";
 import { useAuthStore } from "../../store/authStore";
 import { useItems } from "../inventory/hooks/useItems";
+import { UserRole } from "../../constants/inventory";
 import "./DashboardLayout.css";
 
 const { Header, Sider, Content } = Layout;
@@ -92,7 +93,7 @@ export const DashboardLayout: React.FC<DashboardLayoutProps> = ({
     },
   ];
 
-  const roleLabel = role === "admin" ? "ผู้ดูแลระบบ" : "พนักงาน";
+  const roleLabel = role === UserRole.ADMIN ? "ผู้ดูแลระบบ" : "พนักงาน";
 
   return (
     <Layout className="dashboard-layout">

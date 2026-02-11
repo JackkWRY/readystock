@@ -9,21 +9,21 @@ import {
   DeleteOutlined,
 } from "@ant-design/icons";
 import { useTransactions, type TransactionWithItem } from "./hooks/useTransactions";
-import type { TransactionType } from "../../types/inventory";
+import { TransactionType } from "../../constants/inventory";
 import dayjs from "dayjs";
 
 const { Title } = Typography;
 
-const typeConfig: Record<TransactionType, { color: string; icon: React.ReactNode; label: string }> = {
-  RECEIVE: { color: "success", icon: <PlusCircleOutlined />, label: "รับเข้า" },
-  WITHDRAW: { color: "error", icon: <SendOutlined />, label: "เบิกออก" },
-  UPDATE: { color: "processing", icon: <SyncOutlined />, label: "ปรับยอด" },
-  CREATE: { color: "cyan", icon: <AppstoreAddOutlined />, label: "สร้างสินค้า" },
-  DELETE: { color: "red", icon: <DeleteOutlined />, label: "ลบสินค้า" },
+const typeConfig: Record<TransactionType | 'CREATE', { color: string; icon: React.ReactNode; label: string }> = {
+  [TransactionType.RECEIVE]: { color: "success", icon: <PlusCircleOutlined />, label: "รับเข้า" },
+  [TransactionType.WITHDRAW]: { color: "error", icon: <SendOutlined />, label: "เบิกออก" },
+  [TransactionType.UPDATE]: { color: "processing", icon: <SyncOutlined />, label: "ปรับยอด" },
+  [TransactionType.DELETE]: { color: "red", icon: <DeleteOutlined />, label: "ลบสินค้า" },
+  'CREATE': { color: "cyan", icon: <AppstoreAddOutlined />, label: "สร้างสินค้า" },
 };
 
 export const HistoryView: React.FC = () => {
-  const [typeFilter, setTypeFilter] = useState<TransactionType | "all">("all");
+  const [typeFilter, setTypeFilter] = useState<TransactionType | "all" | 'CREATE'>("all");
   const { data: transactions = [], isLoading } = useTransactions();
 
   const filteredTransactions = typeFilter === "all"
@@ -48,7 +48,7 @@ export const HistoryView: React.FC = () => {
           return <span style={{ fontWeight: 500 }}>{record.items.name}</span>;
         }
         // For deleted items (item_id = null), extract name from note
-        if (record.action_type === "DELETE" && record.note) {
+        if (record.action_type === TransactionType.DELETE && record.note) {
           const match = record.note.match(/ลบสินค้า:\s*(.+)/);
           return <span style={{ fontWeight: 500, textDecoration: "line-through", opacity: 0.6 }}>{match?.[1] || record.note}</span>;
         }
@@ -61,7 +61,7 @@ export const HistoryView: React.FC = () => {
       key: "action_type",
       width: 120,
       align: "center",
-      render: (type: TransactionType) => {
+      render: (type: TransactionType | 'CREATE') => {
         const config = typeConfig[type];
         return config ? (
           <Tag color={config.color} icon={config.icon}>
@@ -80,11 +80,11 @@ export const HistoryView: React.FC = () => {
       align: "center",
       render: (amount: number, record) => {
         const colorMap: Record<string, string> = {
-          RECEIVE: "#52c41a",
-          CREATE: "#13c2c2",
-          WITHDRAW: "#ff4d4f",
-          DELETE: "#ff4d4f",
-          UPDATE: "#1890ff",
+          [TransactionType.RECEIVE]: "#52c41a",
+          ['CREATE']: "#13c2c2",
+          [TransactionType.WITHDRAW]: "#ff4d4f",
+          [TransactionType.DELETE]: "#ff4d4f",
+          [TransactionType.UPDATE]: "#1890ff",
         };
         return (
           <span
@@ -135,11 +135,11 @@ export const HistoryView: React.FC = () => {
             style={{ width: 140 }}
             options={[
               { value: "all", label: "ทั้งหมด" },
-              { value: "RECEIVE", label: "รับเข้า" },
-              { value: "WITHDRAW", label: "เบิกออก" },
-              { value: "UPDATE", label: "ปรับยอด" },
-              { value: "CREATE", label: "สร้างสินค้า" },
-              { value: "DELETE", label: "ลบสินค้า" },
+              { value: TransactionType.RECEIVE, label: "รับเข้า" },
+              { value: TransactionType.WITHDRAW, label: "เบิกออก" },
+              { value: TransactionType.UPDATE, label: "ปรับยอด" },
+              { value: 'CREATE', label: "สร้างสินค้า" },
+              { value: TransactionType.DELETE, label: "ลบสินค้า" },
             ]}
           />
         </Space>

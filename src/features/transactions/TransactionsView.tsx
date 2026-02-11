@@ -1,6 +1,7 @@
 import { Tabs, Typography } from "antd";
 import { PlusCircleOutlined, SendOutlined } from "@ant-design/icons";
 import { StockTransactionForm } from "./components/StockTransactionForm";
+import { TransactionType } from "../../constants/inventory";
 
 const { Title } = Typography;
 
@@ -13,7 +14,7 @@ export const TransactionsView: React.FC = () => {
           <PlusCircleOutlined /> รับเข้า
         </span>
       ),
-      children: <StockTransactionForm type="in" />,
+      children: <StockTransactionForm type={TransactionType.RECEIVE} />,
     },
     {
       key: "out",
@@ -22,7 +23,7 @@ export const TransactionsView: React.FC = () => {
           <SendOutlined /> เบิกออก
         </span>
       ),
-      children: <StockTransactionForm type="out" />,
+      children: <StockTransactionForm type={TransactionType.WITHDRAW} />,
     },
   ];
 

@@ -1,6 +1,8 @@
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "../../../lib/supabaseClient";
 import type { Transaction } from "../../../types/inventory";
+import { handleManualTransaction } from "../services/transactionService";
+import { TransactionType } from "../../../constants/inventory";
 
 const TRANSACTIONS_QUERY_KEY = ["transactions"];
 const ITEMS_QUERY_KEY = ["items"];
@@ -82,37 +84,13 @@ export const useReceiveItem = () => {
       });
 
       if (error) {
-        // Fallback: manual transaction if RPC fails (e.g. function doesn't exist yet)
-        console.warn("RPC receive_item failed, falling back to manual update:", error);
-
-        // 1. Create transaction record
-        const { error: txError } = await supabase
-          .from("transactions")
-          .insert({
-            item_id: itemId,
-            action_type: "RECEIVE",
-            amount: amount,
-            user_email: userEmail || null,
-            note: note || null,
-          });
-
-        if (txError) throw txError;
-
-        // 2. Update item quantity
-        const { data: item } = await supabase
-          .from("items")
-          .select("quantity")
-          .eq("id", itemId)
-          .single();
-
-        if (item) {
-          const { error: updateError } = await supabase
-            .from("items")
-            .update({ quantity: item.quantity + amount })
-            .eq("id", itemId);
-            
-          if (updateError) throw updateError;
-        }
+        await handleManualTransaction({
+          itemId,
+          amount,
+          userEmail,
+          note,
+          type: TransactionType.RECEIVE,
+        });
       }
     },
     onSuccess: () => {
@@ -147,35 +125,13 @@ export const useWithdrawItem = () => {
       });
 
       if (rpcError) {
-        // Fallback: manual transaction if RPC fails
-        const { data: item, error: fetchError } = await supabase
-          .from("items")
-          .select("quantity")
-          .eq("id", itemId)
-          .single();
-
-        if (fetchError) throw fetchError;
-        if (!item) throw new Error("Item not found");
-        if (item.quantity < amount) throw new Error("จำนวนอุปกรณ์ในสต็อกไม่เพียงพอ");
-
-        // Create transaction record
-        const { error: txError } = await supabase.from("transactions").insert({
-          item_id: itemId,
-          action_type: "WITHDRAW",
-          amount: -amount,
-          user_email: userEmail || null,
-          note: note || null,
+        await handleManualTransaction({
+          itemId,
+          amount,
+          userEmail,
+          note,
+          type: TransactionType.WITHDRAW,
         });
-
-        if (txError) throw txError;
-
-        // Update item quantity
-        const { error: updateError } = await supabase
-          .from("items")
-          .update({ quantity: item.quantity - amount })
-          .eq("id", itemId);
-
-        if (updateError) throw updateError;
       }
     },
     onSuccess: () => {

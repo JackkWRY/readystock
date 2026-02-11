@@ -1,8 +1,7 @@
 import { create } from 'zustand';
 import { User, Session } from '@supabase/supabase-js';
 import { supabase } from '../lib/supabaseClient';
-
-export type UserRole = 'admin' | 'staff';
+import { UserRole } from '../constants/inventory';
 
 interface AuthState {
   user: User | null;
@@ -55,7 +54,7 @@ export const useAuthStore = create<AuthState & AuthActions>((set, get) => ({
         set({
           user: session.user,
           session,
-          role: (profile?.role as UserRole) || 'staff',
+          role: (profile?.role as UserRole) || UserRole.STAFF,
         });
       }
 
@@ -71,7 +70,7 @@ export const useAuthStore = create<AuthState & AuthActions>((set, get) => ({
           set({
             user: session.user,
             session,
-            role: (profile?.role as UserRole) || 'staff',
+            role: (profile?.role as UserRole) || UserRole.STAFF,
           });
         } else {
           set({ user: null, session: null, role: null });

@@ -3,6 +3,8 @@
  * Matches Supabase database schema
  */
 
+import { TransactionType, UserRole } from "../constants/inventory";
+
 export interface Item {
   id: number; // bigint in DB
   name: string;
@@ -17,16 +19,14 @@ export interface Item {
 export interface Transaction {
   id: number; // bigint in DB
   item_id: number | null;
-  action_type: 'RECEIVE' | 'WITHDRAW' | 'UPDATE' | 'CREATE' | 'DELETE';
+  action_type: TransactionType;
   amount: number;
   user_email: string | null;
   note: string | null;
   created_at: string;
 }
 
-export type TransactionType = Transaction['action_type'];
-
-export type UserRole = 'admin' | 'staff';
+export type { TransactionType, UserRole };
 
 export interface Profile {
   id: string; // uuid

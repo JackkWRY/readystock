@@ -13,6 +13,7 @@ import {
   LogoutOutlined,
 } from "@ant-design/icons";
 import { useAuthStore } from "../../store/authStore";
+import { UserRole } from "../../constants/inventory";
 
 const { Title, Text } = Typography;
 
@@ -20,7 +21,7 @@ export const SettingsView: React.FC = () => {
   const { user, role, logout } = useAuthStore();
   const [messageApi, contextHolder] = message.useMessage();
 
-  const roleLabel = role === "admin" ? "ผู้ดูแลระบบ" : "พนักงาน";
+  const roleLabel = role === UserRole.ADMIN ? "ผู้ดูแลระบบ" : "พนักงาน";
 
   const handleLogout = () => {
     logout();

@@ -1,64 +1,30 @@
-import { Form, Select, InputNumber, Input, Button, message, Card, Space, Typography } from "antd";
+import { Form, Select, InputNumber, Input, Button, Card, Space, Typography } from "antd";
 import { SendOutlined, PlusCircleOutlined } from "@ant-design/icons";
-import { useItems } from "../../inventory/hooks/useItems";
-import { useReceiveItem, useWithdrawItem } from "../hooks/useTransactions";
-import { useAuthStore } from "../../../store/authStore";
+import { useStockTransactionForm } from "../hooks/useStockTransactionForm";
+import { TransactionType } from "../../../constants/inventory";
 import type { Item } from "../../../types/inventory";
 
 const { Text } = Typography;
 const { TextArea } = Input;
 
 interface StockTransactionFormProps {
-  type: "in" | "out";
+  type: TransactionType;
 }
 
 export const StockTransactionForm: React.FC<StockTransactionFormProps> = ({ type }) => {
-  const [form] = Form.useForm();
-  const [messageApi, contextHolder] = message.useMessage();
-  const { user } = useAuthStore();
+  const {
+    form,
+    items,
+    itemsLoading,
+    selectedItem,
+    isLoading,
+    contextHolder,
+    handleSubmit,
+    filterOption,
+  } = useStockTransactionForm({ type });
 
-  const { data: items = [], isLoading: itemsLoading } = useItems();
-  const receiveItem = useReceiveItem();
-  const withdrawItem = useWithdrawItem();
-
-  const isLoading = receiveItem.isPending || withdrawItem.isPending;
-
-  const selectedItemId = Form.useWatch("item_id", form);
-  const selectedItem = items.find((item) => item.id === selectedItemId);
-
-  const handleSubmit = async (values: { item_id: number; quantity: number; note?: string }) => {
-    try {
-      if (type === "in") {
-        await receiveItem.mutateAsync({
-          itemId: values.item_id,
-          amount: values.quantity,
-          userEmail: user?.email || undefined,
-          note: values.note,
-        });
-        messageApi.success(`รับสินค้าเข้าคลัง ${values.quantity} ชิ้น สำเร็จ`);
-      } else {
-        await withdrawItem.mutateAsync({
-          itemId: values.item_id,
-          amount: values.quantity,
-          userEmail: user?.email || undefined,
-          note: values.note,
-        });
-        messageApi.success(`เบิกสินค้า ${values.quantity} ชิ้น สำเร็จ`);
-      }
-
-      form.resetFields();
-    } catch (error) {
-      if (error instanceof Error) {
-        messageApi.error(error.message);
-      } else {
-        messageApi.error("เกิดข้อผิดพลาด กรุณาลองใหม่อีกครั้ง");
-      }
-    }
-  };
-
-  const filterOption = (input: string, option?: { label: string; value: number }) => {
-    return (option?.label ?? "").toLowerCase().includes(input.toLowerCase());
-  };
+  const isReceive = type === TransactionType.RECEIVE;
+  const isWithdraw = type === TransactionType.WITHDRAW;
 
   return (
     <>
@@ -67,8 +33,8 @@ export const StockTransactionForm: React.FC<StockTransactionFormProps> = ({ type
         className="glass-card"
         title={
           <Space>
-            {type === "in" ? <PlusCircleOutlined /> : <SendOutlined />}
-            <span>{type === "in" ? "รับสินค้าเข้าคลัง" : "เบิกสินค้าออก"}</span>
+            {isReceive ? <PlusCircleOutlined /> : <SendOutlined />}
+            <span>{isReceive ? "รับสินค้าเข้าคลัง" : "เบิกสินค้าออก"}</span>
           </Space>
         }
         style={{ maxWidth: 600 }}
@@ -139,7 +105,7 @@ export const StockTransactionForm: React.FC<StockTransactionFormProps> = ({ type
                 min: 1,
                 message: "จำนวนต้องมากกว่า 0",
               },
-              ...(type === "out" && selectedItem
+              ...(isWithdraw && selectedItem
                 ? [
                     {
                       type: "number" as const,
@@ -152,7 +118,7 @@ export const StockTransactionForm: React.FC<StockTransactionFormProps> = ({ type
           >
             <InputNumber
               min={1}
-              max={type === "out" ? selectedItem?.quantity : undefined}
+              max={isWithdraw ? selectedItem?.quantity : undefined}
               style={{ width: "100%" }}
               placeholder="กรอกจำนวน"
             />
@@ -167,14 +133,14 @@ export const StockTransactionForm: React.FC<StockTransactionFormProps> = ({ type
               type="primary"
               htmlType="submit"
               loading={isLoading}
-              icon={type === "in" ? <PlusCircleOutlined /> : <SendOutlined />}
+              icon={isReceive ? <PlusCircleOutlined /> : <SendOutlined />}
               block
               size="large"
               style={{
-                background: type === "in" ? "#52c41a" : undefined,
+                background: isReceive ? "#52c41a" : undefined,
               }}
             >
-              {type === "in" ? "รับเข้าคลัง" : "เบิกออก"}
+              {isReceive ? "รับเข้าคลัง" : "เบิกออก"}
             </Button>
           </Form.Item>
         </Form>

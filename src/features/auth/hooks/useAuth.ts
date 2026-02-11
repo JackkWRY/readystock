@@ -2,6 +2,7 @@ import { useState } from "react";
 import { message } from "antd";
 import { supabase } from "../../../lib/supabaseClient";
 import { useAuthStore } from "../../../store/authStore";
+import { UserRole } from "../../../constants/inventory";
 
 interface LoginCredentials {
   email: string;
@@ -53,7 +54,7 @@ export const useAuth = (): UseAuthReturn => {
           .eq("id", data.user.id)
           .single();
 
-        const role = (profile?.role as "admin" | "staff") || "staff";
+        const role = (profile?.role as UserRole) || UserRole.STAFF;
         setRole(role);
         message.success("เข้าสู่ระบบสำเร็จ");
         return true;
