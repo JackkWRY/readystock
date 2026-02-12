@@ -132,9 +132,10 @@ npm run build
 
 ### Database Triggers
 
-| Trigger                      | Event                   | Description                   |
-| ---------------------------- | ----------------------- | ----------------------------- |
-| `trg_log_item_create_update` | AFTER INSERT on `items` | Auto-logs CREATE transactions |
+| Trigger                      | Event                       | Description                     |
+| ---------------------------- | --------------------------- | ------------------------------- |
+| `trg_log_item_create_update` | AFTER INSERT on `items`     | Auto-logs CREATE transactions   |
+| `on_profile_role_change`     | INSERT/UPDATE on `profiles` | Syncs role to JWT Custom Claims |
 
 > Stock In/Out and Update transactions are logged by the application code. Soft delete transactions are logged by `useDeleteItem`.
 

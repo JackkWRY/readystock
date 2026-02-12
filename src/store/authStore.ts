@@ -44,17 +44,8 @@ export const useAuthStore = create<AuthState & AuthActions>((set, get) => ({
       const { data: { session } } = await supabase.auth.getSession();
 
       if (session) {
-        // Fetch role from profiles table
-        const { data: profile, error } = await supabase
-          .from("profiles")
-          .select("role")
-          .eq("id", session.user.id)
-          .single();
-
-        let role = null;
-        if (!error && profile?.role) {
-          role = profile.role as UserRole;
-        }
+        // Read role directly from JWT custom claims
+        const role = (session.user.app_metadata?.role as UserRole) || null;
 
         set({
           user: session.user,
@@ -66,16 +57,8 @@ export const useAuthStore = create<AuthState & AuthActions>((set, get) => ({
       // Listen for auth state changes
       supabase.auth.onAuthStateChange(async (_event, session) => {
         if (session) {
-          const { data: profile, error } = await supabase
-            .from("profiles")
-            .select("role")
-            .eq("id", session.user.id)
-            .single();
-
-          let role = null;
-          if (!error && profile?.role) {
-            role = profile.role as UserRole;
-          }
+          // Read role directly from JWT custom claims
+          const role = (session.user.app_metadata?.role as UserRole) || null;
 
           set({
             user: session.user,

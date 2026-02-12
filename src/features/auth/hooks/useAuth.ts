@@ -47,17 +47,8 @@ export const useAuth = (): UseAuthReturn => {
       if (data.user) {
         setUser(data.user);
         
-        // Fetch role from profiles table
-        const { data: profile } = await supabase
-          .from("profiles")
-          .select("role")
-          .eq("id", data.user.id)
-          .single();
-
-        let role = null;
-        if (profile?.role) {
-          role = profile.role as UserRole;
-        }
+        // Read role directly from JWT custom claims
+        const role = (data.user.app_metadata?.role as UserRole) || null;
         setRole(role);
         message.success("เข้าสู่ระบบสำเร็จ");
         return true;
