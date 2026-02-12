@@ -1,11 +1,9 @@
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "../../../lib/supabaseClient";
+import type { Database } from "../../../types/supabase";
 import type { Transaction } from "../../../types/inventory";
 import { handleManualTransaction } from "../services/transactionService";
-import { TransactionType } from "../../../constants/inventory";
-
-const TRANSACTIONS_QUERY_KEY = ["transactions"];
-const ITEMS_QUERY_KEY = ["items"];
+import { TransactionType, QUERY_KEYS } from "../../../constants/inventory";
 
 // Transaction with item details
 export interface TransactionWithItem extends Transaction {
@@ -14,48 +12,53 @@ export interface TransactionWithItem extends Transaction {
   };
 }
 
-// Fetch all transactions with item details
-export const useTransactions = (limit?: number) => {
+// Fetch transactions with joined item details
+export const useTransactions = ({
+  page = 1,
+  pageSize = 10,
+  filter = "all",
+}: {
+  page?: number;
+  pageSize?: number;
+  filter?: string;
+} = {}) => {
   return useQuery({
-    queryKey: [...TRANSACTIONS_QUERY_KEY, { limit }],
-    queryFn: async (): Promise<TransactionWithItem[]> => {
-      // Fetch transactions
+    queryKey: [...QUERY_KEYS.TRANSACTIONS, { page, pageSize, filter }],
+    queryFn: async (): Promise<{ data: TransactionWithItem[]; count: number }> => {
       let query = supabase
         .from("transactions")
-        .select("*")
+        .select("*, items(name)", { count: "exact" })
         .order("created_at", { ascending: false });
 
-      if (limit) {
-        query = query.limit(limit);
+      // Apply filter
+      if (filter && filter !== "all") {
+        // Cast filter to the specific enum type defined in Supabase schema
+        type TransactionTypeEnum = Database["public"]["Enums"]["transaction_type"];
+        query = query.eq("action_type", filter as TransactionTypeEnum);
       }
 
-      const { data: transactions, error: txError } = await query;
-      if (txError) throw txError;
-      if (!transactions || transactions.length === 0) return [];
+      // Apply pagination
+      const from = (page - 1) * pageSize;
+      const to = from + pageSize - 1;
+      query = query.range(from, to);
 
-      // Get unique item IDs (filter out null for deleted items)
-      const itemIds = [...new Set(transactions.map((tx) => tx.item_id).filter((id): id is number => id !== null))];
+      const { data, error, count } = await query;
+      if (error) throw error;
+      
+      // Define the shape of the data returned by the join query
+      type TransactionWithJoinedItem = Transaction & {
+        items: { name: string } | null;
+      };
 
-      // Fetch item details (only if there are valid IDs)
-      let itemsMap = new Map<number, { name: string }>();
-      if (itemIds.length > 0) {
-        const { data: itemsData, error: itemsError } = await supabase
-          .from("items")
-          .select("id, name")
-          .in("id", itemIds);
+      // Cast data to the correct type
+      const transactions = (data || []) as unknown as TransactionWithJoinedItem[];
 
-        if (itemsError) throw itemsError;
-
-        itemsMap = new Map(
-          (itemsData || []).map((item) => [item.id, { name: item.name }])
-        );
-      }
-
-      // Merge transaction with item details
-      return transactions.map((tx) => ({
+      const formattedData = transactions.map((tx) => ({
         ...tx,
-        items: tx.item_id ? itemsMap.get(tx.item_id) || undefined : undefined,
+        items: tx.items ? { name: tx.items.name } : undefined,
       }));
+
+      return { data: formattedData, count: count || 0 };
     },
   });
 };
@@ -76,12 +79,17 @@ export const useReceiveItem = () => {
       userEmail?: string;
       note?: string;
     }): Promise<void> => {
-      const { error } = await supabase.rpc("receive_item", {
+      // Best practice: Explicitly type the arguments using the generated Supabase types
+      type ReceiveItemArgs = Database["public"]["Functions"]["receive_item"]["Args"];
+      
+      const args: ReceiveItemArgs = {
         t_item_id: itemId,
         t_amount: amount,
         t_user_email: userEmail || null,
         t_note: note || null,
-      });
+      };
+
+      const { error } = await supabase.rpc("receive_item", args);
 
       if (error) {
         await handleManualTransaction({
@@ -94,8 +102,8 @@ export const useReceiveItem = () => {
       }
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: TRANSACTIONS_QUERY_KEY });
-      queryClient.invalidateQueries({ queryKey: ITEMS_QUERY_KEY });
+      queryClient.invalidateQueries({ queryKey: QUERY_KEYS.TRANSACTIONS });
+      queryClient.invalidateQueries({ queryKey: QUERY_KEYS.ITEMS });
     },
   });
 };
@@ -117,12 +125,16 @@ export const useWithdrawItem = () => {
       note?: string;
     }): Promise<void> => {
       // Try using the RPC function first (matches DB schema)
-      const { error: rpcError } = await supabase.rpc("withdraw_item", {
+      type WithdrawItemArgs = Database["public"]["Functions"]["withdraw_item"]["Args"];
+      
+      const args: WithdrawItemArgs = {
         t_item_id: itemId,
         t_amount: amount,
         t_user_email: userEmail || null,
         t_note: note || null,
-      });
+      };
+
+      const { error: rpcError } = await supabase.rpc("withdraw_item", args);
 
       if (rpcError) {
         await handleManualTransaction({
@@ -135,8 +147,8 @@ export const useWithdrawItem = () => {
       }
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: TRANSACTIONS_QUERY_KEY });
-      queryClient.invalidateQueries({ queryKey: ITEMS_QUERY_KEY });
+      queryClient.invalidateQueries({ queryKey: QUERY_KEYS.TRANSACTIONS });
+      queryClient.invalidateQueries({ queryKey: QUERY_KEYS.ITEMS });
     },
   });
 };

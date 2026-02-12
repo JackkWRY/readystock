@@ -1,25 +1,10 @@
 import { useState, useMemo } from "react";
-import {
-  Table,
-  Button,
-  Space,
-  Input,
-  Tag,
-  Popconfirm,
-  message,
-  Typography,
-} from "antd";
-import type { ColumnsType } from "antd/es/table";
-import {
-  PlusOutlined,
-  EditOutlined,
-  DeleteOutlined,
-  SearchOutlined,
-  WarningOutlined,
-} from "@ant-design/icons";
+import { Button, Input, message, Typography } from "antd";
+import { PlusOutlined, SearchOutlined } from "@ant-design/icons";
 import type { Item } from "../../types/inventory";
 import { useItems, useDeleteItem } from "./hooks/useItems";
 import { ItemFormModal } from "./components/ItemFormModal";
+import { InventoryTable } from "./components/InventoryTable";
 
 const { Title } = Typography;
 
@@ -64,82 +49,6 @@ export const InventoryView: React.FC = () => {
     setEditItem(null);
   };
 
-  const columns: ColumnsType<Item> = [
-    {
-      title: "ชื่อสินค้า",
-      dataIndex: "name",
-      key: "name",
-      sorter: (a, b) => a.name.localeCompare(b.name),
-      render: (name: string, record) => (
-        <Space>
-          <span style={{ fontWeight: 500 }}>{name}</span>
-          {record.quantity <= record.min_quantity && (
-            <WarningOutlined style={{ color: "#faad14" }} />
-          )}
-        </Space>
-      ),
-    },
-    {
-      title: "หมวดหมู่",
-      dataIndex: "category",
-      key: "category",
-      width: 160,
-      render: (cat: string | null) => cat || "-",
-    },
-    {
-      title: "คงเหลือ",
-      dataIndex: "quantity",
-      key: "quantity",
-      width: 120,
-      align: "center",
-      sorter: (a, b) => a.quantity - b.quantity,
-      render: (qty: number, record) => (
-        <Tag color={qty <= record.min_quantity ? "warning" : "success"}>
-          {qty}
-        </Tag>
-      ),
-    },
-    {
-      title: "ขั้นต่ำ",
-      dataIndex: "min_quantity",
-      key: "min_quantity",
-      width: 100,
-      align: "center",
-    },
-    {
-      title: "จัดการ",
-      key: "actions",
-      width: 120,
-      align: "center",
-      render: (_, record) => (
-        <Space size="small">
-          <Button
-            type="text"
-            icon={<EditOutlined />}
-            onClick={() => handleEdit(record)}
-            size="small"
-          />
-          <Popconfirm
-            title="ยืนยันการลบ"
-            description="คุณต้องการลบสินค้านี้หรือไม่?"
-            onConfirm={() => handleDelete(record.id)}
-            okText="ลบ"
-            cancelText="ยกเลิก"
-            okButtonProps={{ danger: true }}
-          >
-            <Button
-              type="text"
-              icon={<DeleteOutlined />}
-              danger
-              size="small"
-              loading={deleteItem.isPending}
-            />
-          </Popconfirm>
-        </Space>
-      ),
-    },
-  ];
-
   return (
     <>
       {contextHolder}
@@ -174,20 +83,12 @@ export const InventoryView: React.FC = () => {
         />
       </div>
 
-      <Table
-        columns={columns}
-        dataSource={filteredItems}
-        rowKey="id"
-        loading={isLoading}
-        pagination={{
-          pageSize: 10,
-          showSizeChanger: true,
-          showTotal: (total) => `ทั้งหมด ${total} รายการ`,
-        }}
-        style={{
-          background: "rgba(255,255,255,0.05)",
-          borderRadius: 12,
-        }}
+      <InventoryTable 
+        items={filteredItems} 
+        loading={isLoading} 
+        onEdit={handleEdit} 
+        onDelete={handleDelete}
+        isDeleting={deleteItem.isPending}
       />
 
       <ItemFormModal

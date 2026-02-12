@@ -34,10 +34,35 @@ alter table public.profiles enable row level security;
 alter table public.items enable row level security;
 alter table public.transactions enable row level security;
 
--- 3. Policies (Allow all access for demo purposes - adjust for production)
-create policy "Allow all access" on public.profiles for all using (true);
-create policy "Allow all access" on public.items for all using (true);
-create policy "Allow all access" on public.transactions for all using (true);
+-- 3. Policies
+-- Profiles: Admin sees all, User sees own
+create policy "See own profile or Admin sees all" on public.profiles
+  for select using (
+    auth.uid() = id or 
+    (auth.jwt() -> 'app_metadata' ->> 'role') = 'admin'
+  );
+
+create policy "Update own profile or Admin updates all" on public.profiles
+  for update using (
+    auth.uid() = id or 
+    (auth.jwt() -> 'app_metadata' ->> 'role') = 'admin'
+  );
+
+-- Items: Authenticated read, Admin manage
+create policy "Authenticated users can view items" on public.items
+  for select using (auth.role() = 'authenticated');
+
+create policy "Only Admin can manage items" on public.items
+  for all using (
+    (auth.jwt() -> 'app_metadata' ->> 'role') = 'admin'
+  );
+
+-- Transactions: Authenticated read/insert
+create policy "Authenticated users can view transactions" on public.transactions
+  for select using (auth.role() = 'authenticated');
+
+create policy "Authenticated users can verify transactions" on public.transactions
+  for insert with check (auth.role() = 'authenticated');
 
 -- 4. Triggers
 -- Auto-create profile on signup

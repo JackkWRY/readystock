@@ -1,165 +1,79 @@
-import { useState } from "react";
-import { Table, Tag, Select, Space, Typography } from "antd";
-import type { ColumnsType } from "antd/es/table";
-import {
-  PlusCircleOutlined,
-  SendOutlined,
-  SyncOutlined,
-  AppstoreAddOutlined,
-  DeleteOutlined,
-} from "@ant-design/icons";
-import { useTransactions, type TransactionWithItem } from "./hooks/useTransactions";
+import React, { useState } from "react";
+import { Card, Typography, Space, Select } from "antd";
+import { useTransactions } from "./hooks/useTransactions";
+import { TransactionTable } from "./components/TransactionTable";
 import { TransactionType } from "../../constants/inventory";
-import dayjs from "dayjs";
 
 const { Title } = Typography;
 
-const typeConfig: Record<TransactionType | 'CREATE', { color: string; icon: React.ReactNode; label: string }> = {
-  [TransactionType.RECEIVE]: { color: "success", icon: <PlusCircleOutlined />, label: "รับเข้า" },
-  [TransactionType.WITHDRAW]: { color: "error", icon: <SendOutlined />, label: "เบิกออก" },
-  [TransactionType.UPDATE]: { color: "processing", icon: <SyncOutlined />, label: "ปรับยอด" },
-  [TransactionType.DELETE]: { color: "red", icon: <DeleteOutlined />, label: "ลบสินค้า" },
-  'CREATE': { color: "cyan", icon: <AppstoreAddOutlined />, label: "สร้างสินค้า" },
-};
-
 export const HistoryView: React.FC = () => {
   const [typeFilter, setTypeFilter] = useState<TransactionType | "all" | 'CREATE'>("all");
-  const { data: transactions = [], isLoading } = useTransactions();
+  const [page, setPage] = useState(1);
+  const [pageSize, setPageSize] = useState(10);
 
-  const filteredTransactions = typeFilter === "all"
-    ? transactions
-    : transactions.filter((tx) => tx.action_type === typeFilter);
+  // useTransactions hook now handles fetching based on these params
+  const { data, isLoading } = useTransactions({ 
+    page, 
+    pageSize, 
+    filter: typeFilter 
+  });
 
-  const columns: ColumnsType<TransactionWithItem> = [
-    {
-      title: "วันที่-เวลา",
-      dataIndex: "created_at",
-      key: "created_at",
-      width: 180,
-      render: (date: string) => dayjs(date).format("DD/MM/YYYY HH:mm"),
-      sorter: (a, b) => new Date(a.created_at).getTime() - new Date(b.created_at).getTime(),
-      defaultSortOrder: "descend",
-    },
-    {
-      title: "สินค้า",
-      key: "item",
-      render: (_, record) => {
-        if (record.items?.name) {
-          return <span style={{ fontWeight: 500 }}>{record.items.name}</span>;
-        }
-        // For deleted items (item_id = null), extract name from note
-        if (record.action_type === TransactionType.DELETE && record.note) {
-          const match = record.note.match(/ลบสินค้า:\s*(.+)/);
-          return <span style={{ fontWeight: 500, textDecoration: "line-through", opacity: 0.6 }}>{match?.[1] || record.note}</span>;
-        }
-        return <span style={{ opacity: 0.5 }}>-</span>;
-      },
-    },
-    {
-      title: "ประเภท",
-      dataIndex: "action_type",
-      key: "action_type",
-      width: 120,
-      align: "center",
-      render: (type: TransactionType | 'CREATE') => {
-        const config = typeConfig[type];
-        return config ? (
-          <Tag color={config.color} icon={config.icon}>
-            {config.label}
-          </Tag>
-        ) : (
-          <Tag>{type}</Tag>
-        );
-      },
-    },
-    {
-      title: "จำนวน",
-      dataIndex: "amount",
-      key: "amount",
-      width: 100,
-      align: "center",
-      render: (amount: number, record) => {
-        const colorMap: Record<string, string> = {
-          [TransactionType.RECEIVE]: "#52c41a",
-          ['CREATE']: "#13c2c2",
-          [TransactionType.WITHDRAW]: "#ff4d4f",
-          [TransactionType.DELETE]: "#ff4d4f",
-          [TransactionType.UPDATE]: "#1890ff",
-        };
-        return (
-          <span
-            style={{
-              fontWeight: 600,
-              color: colorMap[record.action_type] || "#1890ff",
-            }}
-          >
-            {amount > 0 ? `+${amount}` : amount}
-          </span>
-        );
-      },
-    },
-    {
-      title: "หมายเหตุ",
-      dataIndex: "note",
-      key: "note",
-      ellipsis: true,
-      render: (note: string | null) => note || "-",
-    },
-    {
-      title: "ผู้ทำรายการ",
-      dataIndex: "user_email",
-      key: "user_email",
-      width: 160,
-      render: (email: string | null) => email?.split("@")[0] || "-",
-    },
-  ];
+  // Extract data and count safely
+  const transactions = data?.data || [];
+  const total = data?.count || 0;
+
+  const handlePageChange = (newPage: number, newPageSize: number) => {
+    setPage(newPage);
+    setPageSize(newPageSize);
+  };
+
+  const handleFilterChange = (value: TransactionType | "all" | 'CREATE') => {
+    setTypeFilter(value);
+    setPage(1); // Reset to first page when filter changes
+  };
 
   return (
-    <div>
-      <div
-        style={{
-          display: "flex",
-          justifyContent: "space-between",
-          alignItems: "center",
-          marginBottom: 24,
-        }}
-      >
-        <Title level={4} style={{ margin: 0, color: "#fff" }}>
-          ประวัติการทำรายการ
-        </Title>
+    <div style={{ padding: 24 }}>
+      <Space direction="vertical" size="large" style={{ width: "100%" }}>
+        <div
+          style={{
+            display: "flex",
+            justifyContent: "space-between",
+            alignItems: "center",
+          }}
+        >
+          <Title level={4} style={{ margin: 0, color: "#fff" }}>
+            ประวัติการทำรายการ
+          </Title>
 
-        <Space>
-          <Select
-            value={typeFilter}
-            onChange={setTypeFilter}
-            style={{ width: 140 }}
-            options={[
-              { value: "all", label: "ทั้งหมด" },
-              { value: TransactionType.RECEIVE, label: "รับเข้า" },
-              { value: TransactionType.WITHDRAW, label: "เบิกออก" },
-              { value: TransactionType.UPDATE, label: "ปรับยอด" },
-              { value: 'CREATE', label: "สร้างสินค้า" },
-              { value: TransactionType.DELETE, label: "ลบสินค้า" },
-            ]}
+          <Space>
+            <Select
+              value={typeFilter}
+              onChange={handleFilterChange}
+              style={{ width: 140 }}
+              options={[
+                { value: "all", label: "ทั้งหมด" },
+                { value: TransactionType.RECEIVE, label: "รับเข้า" },
+                { value: TransactionType.WITHDRAW, label: "เบิกออก" },
+                { value: TransactionType.UPDATE, label: "ปรับยอด" },
+                { value: 'CREATE', label: "สร้างสินค้า" },
+                { value: TransactionType.DELETE, label: "ลบสินค้า" },
+              ]}
+            />
+          </Space>
+        </div>
+
+        <Card className="glass-card">
+          <TransactionTable 
+            transactions={transactions} 
+            loading={isLoading}
+            total={total}
+            page={page}
+            pageSize={pageSize}
+            onPageChange={handlePageChange}
           />
-        </Space>
-      </div>
-
-      <Table
-        columns={columns}
-        dataSource={filteredTransactions}
-        rowKey="id"
-        loading={isLoading}
-        pagination={{
-          pageSize: 15,
-          showSizeChanger: true,
-          showTotal: (total) => `ทั้งหมด ${total} รายการ`,
-        }}
-        style={{
-          background: "rgba(255,255,255,0.05)",
-          borderRadius: 12,
-        }}
-      />
+        </Card>
+      </Space>
     </div>
   );
 };

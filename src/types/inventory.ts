@@ -5,26 +5,10 @@
 
 import { TransactionType, UserRole } from "../constants/inventory";
 
-export interface Item {
-  id: number; // bigint in DB
-  name: string;
-  category: string | null;
-  quantity: number;
-  min_quantity: number;
-  is_deleted: boolean;
-  deleted_at: string | null;
-  created_at: string;
-}
+import { Database } from "./supabase";
 
-export interface Transaction {
-  id: number; // bigint in DB
-  item_id: number | null;
-  action_type: TransactionType;
-  amount: number;
-  user_email: string | null;
-  note: string | null;
-  created_at: string;
-}
+export type Item = Database["public"]["Tables"]["items"]["Row"];
+export type Transaction = Database["public"]["Tables"]["transactions"]["Row"];
 
 export type { TransactionType, UserRole };
 
@@ -35,6 +19,7 @@ export interface Profile {
 }
 
 // Form input types (for creating/updating)
-export type CreateItemInput = Omit<Item, 'id' | 'created_at' | 'is_deleted' | 'deleted_at'>;
 
-export type CreateTransactionInput = Omit<Transaction, 'id' | 'created_at'>;
+export type CreateTransactionInput = Database["public"]["Tables"]["transactions"]["Insert"];
+export type CreateItemInput = Database["public"]["Tables"]["items"]["Insert"];
+export type UpdateItemInput = Database["public"]["Tables"]["items"]["Update"];

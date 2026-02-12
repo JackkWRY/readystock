@@ -3,6 +3,7 @@ import { ConfigProvider, Spin, theme } from "antd";
 import { useAuthStore } from "./store/authStore";
 import { LoginView } from "./features/auth/LoginView";
 import { DashboardLayout, type MenuKey } from "./features/dashboard/DashboardLayout";
+import { DashboardView } from "./features/dashboard/DashboardView";
 import { InventoryView } from "./features/inventory/InventoryView";
 import { TransactionsView } from "./features/transactions/TransactionsView";
 import { HistoryView } from "./features/transactions/HistoryView";
@@ -13,7 +14,7 @@ import { GlobalErrorFallback } from "./components/GlobalErrorFallback";
 
 function App() {
   const { user, isLoading, initialize } = useAuthStore();
-  const [activeMenu, setActiveMenu] = useState<MenuKey>("inventory");
+  const [activeMenu, setActiveMenu] = useState<MenuKey>("dashboard");
 
   useEffect(() => {
     initialize();
@@ -22,6 +23,8 @@ function App() {
   // Render content based on active menu
   const renderContent = () => {
     switch (activeMenu) {
+      case "dashboard":
+        return <DashboardView />;
       case "inventory":
         return <InventoryView />;
       case "transactions":
@@ -31,7 +34,7 @@ function App() {
       case "settings":
         return <SettingsView />;
       default:
-        return <InventoryView />;
+        return <DashboardView />;
     }
   };
 

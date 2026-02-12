@@ -1,6 +1,6 @@
 import { useMemo } from "react";
 import { useItems } from "../../inventory/hooks/useItems";
-import { useTransactions } from "../../transactions/hooks/useTransactions";
+import { useTransactions, TransactionWithItem } from "../../transactions/hooks/useTransactions";
 
 interface DashboardStats {
   totalItems: number;
@@ -12,7 +12,7 @@ interface DashboardStats {
 interface UseDashboardReturn {
   stats: DashboardStats;
   lowStockItems: ReturnType<typeof useItems>["data"];
-  recentTransactions: ReturnType<typeof useTransactions>["data"];
+  recentTransactions: TransactionWithItem[];
   isLoading: boolean;
 }
 
@@ -22,7 +22,11 @@ interface UseDashboardReturn {
  */
 export const useDashboard = (): UseDashboardReturn => {
   const { data: items = [], isLoading: itemsLoading } = useItems();
-  const { data: transactions = [], isLoading: transactionsLoading } = useTransactions(5);
+  const { data: transactionsData, isLoading: transactionsLoading } = useTransactions({ pageSize: 5 });
+  
+  const transactions = useMemo(() => {
+    return transactionsData?.data || [];
+  }, [transactionsData]);
 
   const stats = useMemo<DashboardStats>(() => {
     const totalItems = items.length;

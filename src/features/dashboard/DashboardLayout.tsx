@@ -20,7 +20,7 @@ import "./DashboardLayout.css";
 const { Header, Sider, Content } = Layout;
 const { Text } = Typography;
 
-export type MenuKey = "inventory" | "transactions" | "history" | "settings";
+export type MenuKey = "dashboard" | "inventory" | "transactions" | "history" | "settings";
 
 interface DashboardLayoutProps {
   children: React.ReactNode;
@@ -58,8 +58,14 @@ export const DashboardLayout: React.FC<DashboardLayoutProps> = ({
 
   const menuItems: MenuProps["items"] = [
     {
-      key: "inventory",
+      key: "dashboard",
       icon: <AppstoreOutlined />,
+      label: "ภาพรวม",
+    },
+    {
+      key: "inventory",
+      icon: <ShopOutlined />, // Changed icon to verify visual distinction
+
       label: (
         <span style={{ display: "flex", alignItems: "center", gap: 8 }}>
           คลังสินค้า

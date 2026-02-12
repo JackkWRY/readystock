@@ -1,15 +1,12 @@
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "../../../lib/supabaseClient";
 import type { Item, CreateItemInput } from "../../../types/inventory";
-import { TransactionType } from "../../../constants/inventory";
-
-const ITEMS_QUERY_KEY = ["items"];
-const TRANSACTIONS_QUERY_KEY = ["transactions"];
+import { TransactionType, QUERY_KEYS } from "../../../constants/inventory";
 
 // Fetch all items
 export const useItems = () => {
   return useQuery({
-    queryKey: ITEMS_QUERY_KEY,
+    queryKey: QUERY_KEYS.ITEMS,
     queryFn: async (): Promise<Item[]> => {
       const { data, error } = await supabase
         .from("items")
@@ -39,8 +36,8 @@ export const useCreateItem = () => {
       return data;
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ITEMS_QUERY_KEY });
-      queryClient.invalidateQueries({ queryKey: TRANSACTIONS_QUERY_KEY });
+      queryClient.invalidateQueries({ queryKey: QUERY_KEYS.ITEMS });
+      queryClient.invalidateQueries({ queryKey: QUERY_KEYS.TRANSACTIONS });
     },
   });
 };
@@ -85,8 +82,8 @@ export const useUpdateItem = () => {
       return data;
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ITEMS_QUERY_KEY });
-      queryClient.invalidateQueries({ queryKey: TRANSACTIONS_QUERY_KEY });
+      queryClient.invalidateQueries({ queryKey: QUERY_KEYS.ITEMS });
+      queryClient.invalidateQueries({ queryKey: QUERY_KEYS.TRANSACTIONS });
     },
   });
 };
@@ -124,8 +121,8 @@ export const useDeleteItem = () => {
       });
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ITEMS_QUERY_KEY });
-      queryClient.invalidateQueries({ queryKey: TRANSACTIONS_QUERY_KEY });
+      queryClient.invalidateQueries({ queryKey: QUERY_KEYS.ITEMS });
+      queryClient.invalidateQueries({ queryKey: QUERY_KEYS.TRANSACTIONS });
     },
   });
 };

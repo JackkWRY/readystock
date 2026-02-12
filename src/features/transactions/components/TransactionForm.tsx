@@ -7,11 +7,11 @@ import type { Item } from "../../../types/inventory";
 const { Text } = Typography;
 const { TextArea } = Input;
 
-interface StockTransactionFormProps {
+interface TransactionFormProps {
   type: TransactionType;
 }
 
-export const StockTransactionForm: React.FC<StockTransactionFormProps> = ({ type }) => {
+export const TransactionForm: React.FC<TransactionFormProps> = ({ type }) => {
   const {
     form,
     items,
@@ -149,4 +149,4 @@ export const StockTransactionForm: React.FC<StockTransactionFormProps> = ({ type
   );
 };
 
-export default StockTransactionForm;
+export default TransactionForm;
