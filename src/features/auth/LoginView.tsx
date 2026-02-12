@@ -2,7 +2,7 @@ import { useState } from 'react';
 import { Form, Input, Button, Card, Typography, message, Space } from 'antd';
 import { LockOutlined, UserOutlined, ShopOutlined } from '@ant-design/icons';
 import { supabase } from '../../lib/supabaseClient';
-import { useAuthStore, UserRole } from '../../store/authStore';
+import { useAuthStore } from '../../store/authStore';
 
 const { Title, Text } = Typography;
 
@@ -14,7 +14,7 @@ interface LoginFormValues {
 export const LoginView: React.FC = () => {
   const [loading, setLoading] = useState(false);
   const [messageApi, contextHolder] = message.useMessage();
-  const { setUser, setSession, setRole } = useAuthStore();
+  const { setUser, setSession } = useAuthStore();
 
   const handleLogin = async (values: LoginFormValues) => {
     setLoading(true);
@@ -33,7 +33,6 @@ export const LoginView: React.FC = () => {
       if (data.session && data.user) {
         setSession(data.session);
         setUser(data.user);
-        setRole((data.user.user_metadata?.role as UserRole) || 'staff');
         messageApi.success('เข้าสู่ระบบสำเร็จ!');
       }
     } catch (err) {

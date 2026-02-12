@@ -21,7 +21,12 @@ export const SettingsView: React.FC = () => {
   const { user, role, logout } = useAuthStore();
   const [messageApi, contextHolder] = message.useMessage();
 
-  const roleLabel = role === UserRole.ADMIN ? "ผู้ดูแลระบบ" : "พนักงาน";
+  let roleLabel = "";
+  if (role === UserRole.ADMIN) {
+    roleLabel = "ผู้ดูแลระบบ";
+  } else if (role === UserRole.STAFF) {
+    roleLabel = "พนักงาน";
+  }
 
   const handleLogout = () => {
     logout();

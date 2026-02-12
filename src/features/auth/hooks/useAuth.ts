@@ -54,7 +54,10 @@ export const useAuth = (): UseAuthReturn => {
           .eq("id", data.user.id)
           .single();
 
-        const role = (profile?.role as UserRole) || UserRole.STAFF;
+        let role = null;
+        if (profile?.role) {
+          role = profile.role as UserRole;
+        }
         setRole(role);
         message.success("เข้าสู่ระบบสำเร็จ");
         return true;

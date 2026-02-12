@@ -93,7 +93,12 @@ export const DashboardLayout: React.FC<DashboardLayoutProps> = ({
     },
   ];
 
-  const roleLabel = role === UserRole.ADMIN ? "ผู้ดูแลระบบ" : "พนักงาน";
+  let roleLabel = "";
+  if (role === UserRole.ADMIN) {
+    roleLabel = "ผู้ดูแลระบบ";
+  } else if (role === UserRole.STAFF) {
+    roleLabel = "พนักงาน";
+  }
 
   return (
     <Layout className="dashboard-layout">
