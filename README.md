@@ -14,7 +14,8 @@ A modern inventory management desktop application built with **React**, **TypeSc
 - **⚠️ Low Stock Alerts** — Visual warnings when items fall below minimum quantity thresholds
 - **🔐 Authentication** — Supabase-based login with role-based access (Admin / Staff)
 - **🗑️ Soft Delete** — Items are never permanently removed; history remains fully trackable
-- **🔄 Real-time Sync** — Automatic cache invalidation via React Query
+- **� Dashboard** — Executive summary with visual statistics, low stock alerts, and recent transaction history
+- **�🔄 Real-time Sync** — Automatic cache invalidation via React Query
 
 ## 🛠️ Tech Stack
 
@@ -112,8 +113,8 @@ npm run build
 | `id`           | bigint      | Primary key         |
 | `name`         | text        | Item name           |
 | `category`     | text        | Category (nullable) |
-| `quantity`     | integer     | Current stock       |
-| `min_quantity` | integer     | Low stock threshold |
+| `quantity`     | bigint      | Current stock       |
+| `min_quantity` | bigint      | Low stock threshold |
 | `is_deleted`   | boolean     | Soft delete flag    |
 | `deleted_at`   | timestamptz | Deletion timestamp  |
 | `created_at`   | timestamptz | Creation timestamp  |
@@ -125,17 +126,18 @@ npm run build
 | `id`          | bigint      | Primary key                                                 |
 | `item_id`     | bigint      | FK → items (SET NULL on delete)                             |
 | `action_type` | text        | `CREATE` \| `RECEIVE` \| `WITHDRAW` \| `UPDATE` \| `DELETE` |
-| `amount`      | integer     | Quantity change (+/-)                                       |
+| `amount`      | bigint      | Quantity change (+/-)                                       |
 | `note`        | text        | Description                                                 |
 | `user_email`  | text        | Who performed the action                                    |
 | `created_at`  | timestamptz | Timestamp                                                   |
 
 ### Database Triggers
 
-| Trigger                      | Event                       | Description                     |
-| ---------------------------- | --------------------------- | ------------------------------- |
-| `trg_log_item_create_update` | AFTER INSERT on `items`     | Auto-logs CREATE transactions   |
-| `on_profile_role_change`     | INSERT/UPDATE on `profiles` | Syncs role to JWT Custom Claims |
+| Trigger                  | Event                        | Description                      |
+| ------------------------ | ---------------------------- | -------------------------------- |
+| `trg_log_item_create`    | AFTER INSERT on `items`      | Auto-logs CREATE transactions    |
+| `on_profile_role_change` | INSERT/UPDATE on `profiles`  | Syncs role to JWT Custom Claims  |
+| `on_auth_user_created`   | AFTER INSERT on `auth.users` | Auto-creates public user profile |
 
 > Stock In/Out and Update transactions are logged by the application code. Soft delete transactions are logged by `useDeleteItem`.
 
