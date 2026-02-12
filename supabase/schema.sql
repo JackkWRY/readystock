@@ -61,7 +61,7 @@ create policy "Only Admin can manage items" on public.items
 create policy "Authenticated users can view transactions" on public.transactions
   for select using (auth.role() = 'authenticated');
 
-create policy "Authenticated users can verify transactions" on public.transactions
+create policy "Authenticated users can create transactions" on public.transactions
   for insert with check (auth.role() = 'authenticated');
 
 -- 4. Triggers
