@@ -3,6 +3,7 @@ import { Card, Typography, Space, Select } from "antd";
 import { useTransactions } from "./hooks/useTransactions";
 import { TransactionTable } from "./components/TransactionTable";
 import { TransactionType } from "../../constants/inventory";
+import { useTranslation } from "../../hooks/useTranslation";
 import "./styles/HistoryView.css";
 
 const { Title } = Typography;
@@ -11,6 +12,7 @@ export const HistoryView: React.FC = () => {
   const [typeFilter, setTypeFilter] = useState<TransactionType | "all" | 'CREATE'>("all");
   const [page, setPage] = useState(1);
   const [pageSize, setPageSize] = useState(10);
+  const { t } = useTranslation();
 
   // useTransactions hook now handles fetching based on these params
   const { data, isLoading } = useTransactions({ 
@@ -38,7 +40,7 @@ export const HistoryView: React.FC = () => {
       <Space direction="vertical" size="large" className="history-content">
         <div className="history-header">
           <Title level={4} className="history-title">
-            ประวัติการทำรายการ
+            {t.TRANSACTION.HISTORY}
           </Title>
 
           <Space>
@@ -47,12 +49,12 @@ export const HistoryView: React.FC = () => {
               onChange={handleFilterChange}
               className="history-filter"
               options={[
-                { value: "all", label: "ทั้งหมด" },
-                { value: TransactionType.RECEIVE, label: "รับเข้า" },
-                { value: TransactionType.WITHDRAW, label: "เบิกออก" },
-                { value: TransactionType.UPDATE, label: "ปรับยอด" },
-                { value: 'CREATE', label: "สร้างสินค้า" },
-                { value: TransactionType.DELETE, label: "ลบสินค้า" },
+                { value: "all", label: t.TRANSACTION.ALL },
+                { value: TransactionType.RECEIVE, label: t.TRANSACTION.TYPES.RECEIVE },
+                { value: TransactionType.WITHDRAW, label: t.TRANSACTION.TYPES.WITHDRAW },
+                { value: TransactionType.UPDATE, label: t.TRANSACTION.TYPES.UPDATE },
+                { value: 'CREATE', label: t.TRANSACTION.TYPES.CREATE },
+                { value: TransactionType.DELETE, label: t.TRANSACTION.TYPES.DELETE },
               ]}
             />
           </Space>

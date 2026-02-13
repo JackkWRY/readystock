@@ -3,17 +3,20 @@ import { Tabs, Typography } from "antd";
 import { PlusCircleOutlined, SendOutlined } from "@ant-design/icons";
 import { TransactionForm } from "./components/TransactionForm";
 import { TransactionType } from "../../constants/inventory";
+import { useTranslation } from "../../hooks/useTranslation";
 import "./styles/TransactionsView.css";
 
 const { Title } = Typography;
 
 export const TransactionsView: React.FC = () => {
+  const { t } = useTranslation();
+
   const tabItems = [
     {
       key: "in",
       label: (
         <span>
-          <PlusCircleOutlined /> รับเข้า
+          <PlusCircleOutlined /> {t.TRANSACTION.RECEIVE}
         </span>
       ),
       children: <TransactionForm type={TransactionType.RECEIVE} />,
@@ -22,7 +25,7 @@ export const TransactionsView: React.FC = () => {
       key: "out",
       label: (
         <span>
-          <SendOutlined /> เบิกออก
+          <SendOutlined /> {t.TRANSACTION.WITHDRAW}
         </span>
       ),
       children: <TransactionForm type={TransactionType.WITHDRAW} />,
@@ -32,7 +35,7 @@ export const TransactionsView: React.FC = () => {
   return (
     <div className="transactions-container">
       <Title level={4} className="transactions-title">
-        เบิก-รับสินค้า
+        {t.TRANSACTION.TITLE}
       </Title>
 
       <div className="transactions-card">

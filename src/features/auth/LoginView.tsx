@@ -3,7 +3,7 @@ import { Form, Input, Button, Card, Typography, message, Space } from 'antd';
 import { LockOutlined, UserOutlined, ShopOutlined } from '@ant-design/icons';
 
 import { useAuthStore } from '../../store/authStore';
-import { TH } from '../../constants/th';
+import { useTranslation } from '../../hooks/useTranslation';
 import './LoginView.css';
 import { handleError } from '../../utils/errorHandler';
 
@@ -18,15 +18,16 @@ export const LoginView: React.FC = () => {
   const [loading, setLoading] = useState(false);
   const [messageApi, contextHolder] = message.useMessage();
   const { login } = useAuthStore();
+  const { t } = useTranslation();
 
   const handleLogin = async (values: LoginFormValues) => {
     setLoading(true);
 
     try {
       await login(values.email, values.password);
-      messageApi.success(TH.LOGIN.SUCCESS);
+      messageApi.success(t.LOGIN.SUCCESS);
     } catch (err) {
-      handleError(err, TH.LOGIN.ERROR_INVALID);
+      handleError(err, t.LOGIN.ERROR_INVALID);
     } finally {
       setLoading(false);
     }
@@ -73,7 +74,7 @@ export const LoginView: React.FC = () => {
               >
                 <Input
                   prefix={<UserOutlined className="login-input-icon" />}
-                  placeholder={TH.LOGIN.EMAIL}
+                  placeholder={t.LOGIN.EMAIL}
                   autoComplete="email"
                 />
               </Form.Item>
@@ -87,7 +88,7 @@ export const LoginView: React.FC = () => {
               >
                 <Input.Password
                   prefix={<LockOutlined className="login-input-icon" />}
-                  placeholder={TH.LOGIN.PASSWORD}
+                  placeholder={t.LOGIN.PASSWORD}
                   autoComplete="current-password"
                 />
               </Form.Item>
@@ -100,7 +101,7 @@ export const LoginView: React.FC = () => {
                   block
                   className="login-button"
                 >
-                  {TH.LOGIN.SUBMIT}
+                  {t.LOGIN.SUBMIT}
                 </Button>
               </Form.Item>
             </Form>

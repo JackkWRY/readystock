@@ -14,7 +14,8 @@ import {
 } from "@ant-design/icons";
 import { useAuthStore } from "../../store/authStore";
 import { UserRole } from "../../constants/inventory";
-import { TH } from "../../constants/th";
+import { useTranslation } from "../../hooks/useTranslation";
+import { LanguageSwitcher } from "../../components/common/LanguageSwitcher";
 import "./SettingsView.css";
 
 const { Title, Text } = Typography;
@@ -22,17 +23,13 @@ const { Title, Text } = Typography;
 export const SettingsView: React.FC = () => {
   const { user, role, logout } = useAuthStore();
   const [messageApi, contextHolder] = message.useMessage();
+  const { t } = useTranslation();
 
-  let roleLabel = "";
-  if (role === UserRole.ADMIN) {
-    roleLabel = "ผู้ดูแลระบบ";
-  } else if (role === UserRole.STAFF) {
-    roleLabel = "พนักงาน";
-  }
+  const roleLabel = role === UserRole.ADMIN ? t.SETTINGS.ROLES.ADMIN : t.SETTINGS.ROLES.STAFF;
 
   const handleLogout = () => {
     logout();
-    messageApi.success(TH.COMMON.SUCCESS);
+    messageApi.success(t.COMMON.SUCCESS);
   };
 
   return (
@@ -40,7 +37,7 @@ export const SettingsView: React.FC = () => {
       {contextHolder}
       <div className="settings-container">
         <Title level={4} className="settings-title">
-          {TH.SETTINGS.TITLE}
+          {t.SETTINGS.TITLE}
         </Title>
 
         {/* User Profile Section */}
@@ -63,13 +60,29 @@ export const SettingsView: React.FC = () => {
           </Space>
         </Card>
 
+        {/* Language Section */}
+        <Card
+          className="glass-card settings-card"
+          title={
+            <Space>
+              <InfoCircleOutlined />
+              <span>{t.SETTINGS.LANGUAGE}</span>
+            </Space>
+          }
+        >
+          <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+            <Text>เลือกภาษา / Select Language</Text>
+            <LanguageSwitcher />
+          </div>
+        </Card>
+
         {/* About Section */}
         <Card
           className="glass-card settings-card"
           title={
             <Space>
               <InfoCircleOutlined />
-              <span>{TH.SETTINGS.ABOUT}</span>
+              <span>{t.SETTINGS.ABOUT}</span>
             </Space>
           }
         >
@@ -96,7 +109,7 @@ export const SettingsView: React.FC = () => {
           size="large"
           block
         >
-          {TH.SETTINGS.LOGOUT}
+          {t.SETTINGS.LOGOUT}
         </Button>
       </div>
     </>

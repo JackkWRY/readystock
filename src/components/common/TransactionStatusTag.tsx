@@ -8,21 +8,33 @@ import {
   DeleteOutlined,
 } from "@ant-design/icons";
 import { TransactionType } from "../../constants/inventory";
+import { useTranslation } from "../../hooks/useTranslation";
 
 interface TransactionStatusTagProps {
   type: string;
 }
 
-const typeConfig: Record<string, { color: string; icon: React.ReactNode; label: string }> = {
-  [TransactionType.RECEIVE]: { color: "success", icon: <PlusCircleOutlined />, label: "รับเข้า" },
-  [TransactionType.WITHDRAW]: { color: "error", icon: <SendOutlined />, label: "เบิกออก" },
-  [TransactionType.UPDATE]: { color: "processing", icon: <SyncOutlined />, label: "ปรับยอด" },
-  [TransactionType.DELETE]: { color: "red", icon: <DeleteOutlined />, label: "ลบสินค้า" },
-  'CREATE': { color: "cyan", icon: <AppstoreAddOutlined />, label: "สร้างสินค้า" },
-};
-
 export const TransactionStatusTag: React.FC<TransactionStatusTagProps> = ({ type }) => {
-  const config = typeConfig[type];
+  const { t } = useTranslation();
+
+  const getConfig = (type: string) => {
+    switch (type) {
+      case TransactionType.RECEIVE:
+        return { color: "success", icon: <PlusCircleOutlined />, label: t.TRANSACTION.TYPES.RECEIVE };
+      case TransactionType.WITHDRAW:
+        return { color: "error", icon: <SendOutlined />, label: t.TRANSACTION.TYPES.WITHDRAW };
+      case TransactionType.UPDATE:
+        return { color: "processing", icon: <SyncOutlined />, label: t.TRANSACTION.TYPES.UPDATE };
+      case TransactionType.DELETE:
+        return { color: "red", icon: <DeleteOutlined />, label: t.TRANSACTION.TYPES.DELETE };
+      case 'CREATE':
+        return { color: "cyan", icon: <AppstoreAddOutlined />, label: t.TRANSACTION.TYPES.CREATE };
+      default:
+        return null;
+    }
+  };
+
+  const config = getConfig(type);
 
   if (!config) {
     return <Tag>{type}</Tag>;

@@ -7,8 +7,8 @@ import {
   WarningOutlined,
 } from "@ant-design/icons";
 import type { Item } from "../../../types/inventory";
-import { TH } from "../../../constants/th";
 import { TableSkeleton } from "../../../components/common/TableSkeleton";
+import { useTranslation } from "../../../hooks/useTranslation";
 
 interface InventoryTableProps {
   items: Item[];
@@ -25,9 +25,11 @@ export const InventoryTable: React.FC<InventoryTableProps> = ({
   onDelete,
   isDeleting,
 }) => {
+  const { t } = useTranslation();
+
   const columns: ColumnsType<Item> = [
     {
-      title: TH.INVENTORY.NAME,
+      title: t.INVENTORY.NAME,
       dataIndex: "name",
       key: "name",
       sorter: (a, b) => a.name.localeCompare(b.name),
@@ -41,14 +43,14 @@ export const InventoryTable: React.FC<InventoryTableProps> = ({
       ),
     },
     {
-      title: TH.INVENTORY.CATEGORY,
+      title: t.INVENTORY.CATEGORY,
       dataIndex: "category",
       key: "category",
       width: 160,
       render: (cat: string | null) => cat || "-",
     },
     {
-      title: TH.INVENTORY.QUANTITY,
+      title: t.INVENTORY.QUANTITY,
       dataIndex: "quantity",
       key: "quantity",
       width: 120,
@@ -61,14 +63,14 @@ export const InventoryTable: React.FC<InventoryTableProps> = ({
       ),
     },
     {
-      title: TH.INVENTORY.MIN_QUANTITY,
+      title: t.INVENTORY.MIN_QUANTITY,
       dataIndex: "min_quantity",
       key: "min_quantity",
       width: 100,
       align: "center",
     },
     {
-      title: "จัดการ",
+      title: t.TRANSACTION.ACTION,
       key: "actions",
       width: 120,
       align: "center",
@@ -81,11 +83,11 @@ export const InventoryTable: React.FC<InventoryTableProps> = ({
             size="small"
           />
           <Popconfirm
-            title={TH.INVENTORY.DELETE_ITEM}
-            description={TH.INVENTORY.CONFIRM_DELETE}
+            title={t.INVENTORY.DELETE_ITEM}
+            description={t.INVENTORY.CONFIRM_DELETE}
             onConfirm={() => onDelete(record.id)}
-            okText={TH.COMMON.CONFIRM}
-            cancelText={TH.COMMON.CANCEL}
+            okText={t.COMMON.CONFIRM}
+            cancelText={t.COMMON.CANCEL}
             okButtonProps={{ danger: true }}
           >
             <Button
@@ -114,7 +116,7 @@ export const InventoryTable: React.FC<InventoryTableProps> = ({
       pagination={{
         pageSize: 10,
         showSizeChanger: true,
-        showTotal: (total) => `${TH.DASHBOARD.TOTAL_ITEMS} ${total} รายการ`,
+        showTotal: (total) => `${t.DASHBOARD.TOTAL_ITEMS} ${total} ${t.INVENTORY.UNIT}`,
       }}
       className="inventory-table"
     />

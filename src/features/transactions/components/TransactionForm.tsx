@@ -3,7 +3,7 @@ import { SendOutlined, PlusCircleOutlined } from "@ant-design/icons";
 import { useStockTransactionForm } from "../hooks/useStockTransactionForm";
 import { TransactionType } from "../../../constants/inventory";
 import type { Item } from "../../../types/inventory";
-import { TH } from "../../../constants/th";
+import { useTranslation } from "../../../hooks/useTranslation";
 import "./styles/TransactionForm.css";
 
 const { Text } = Typography;
@@ -24,6 +24,7 @@ export const TransactionForm: React.FC<TransactionFormProps> = ({ type }) => {
     handleSubmit,
     filterOption,
   } = useStockTransactionForm({ type });
+  const { t } = useTranslation();
 
   const isReceive = type === TransactionType.RECEIVE;
   const isWithdraw = type === TransactionType.WITHDRAW;
@@ -36,7 +37,7 @@ export const TransactionForm: React.FC<TransactionFormProps> = ({ type }) => {
         title={
           <Space>
             {isReceive ? <PlusCircleOutlined /> : <SendOutlined />}
-            <span>{isReceive ? TH.TRANSACTION.RECEIVE_TITLE : TH.TRANSACTION.WITHDRAW_TITLE}</span>
+            <span>{isReceive ? t.TRANSACTION.RECEIVE_TITLE : t.TRANSACTION.WITHDRAW_TITLE}</span>
           </Space>
         }
       >
@@ -48,12 +49,12 @@ export const TransactionForm: React.FC<TransactionFormProps> = ({ type }) => {
         >
           <Form.Item
             name="item_id"
-            label={TH.TRANSACTION.SELECT_ITEM}
+            label={t.TRANSACTION.SELECT_ITEM}
             rules={[{ required: true, message: "กรุณาเลือกสินค้า" }]}
           >
             <Select
               showSearch
-              placeholder={TH.INVENTORY.SEARCH}
+              placeholder={t.INVENTORY.SEARCH}
               loading={itemsLoading}
               filterOption={filterOption}
               options={items.map((item: Item) => ({
@@ -75,12 +76,12 @@ export const TransactionForm: React.FC<TransactionFormProps> = ({ type }) => {
                         : "item-quantity-success"
                     }`}
                   >
-                    {selectedItem.quantity} {TH.INVENTORY.UNIT}
+                    {selectedItem.quantity} {t.INVENTORY.UNIT}
                   </Text>
                 </Text>
                 {selectedItem.category && (
                   <Text className="item-category-text">
-                    {TH.INVENTORY.CATEGORY}: {selectedItem.category}
+                    {t.INVENTORY.CATEGORY}: {selectedItem.category}
                   </Text>
                 )}
               </Space>
@@ -89,7 +90,7 @@ export const TransactionForm: React.FC<TransactionFormProps> = ({ type }) => {
 
           <Form.Item
             name="quantity"
-            label={TH.TRANSACTION.AMOUNT}
+            label={t.TRANSACTION.AMOUNT}
             rules={[
               { required: true, message: "กรุณากรอกจำนวน" },
               {
@@ -112,12 +113,12 @@ export const TransactionForm: React.FC<TransactionFormProps> = ({ type }) => {
               min={1}
               max={isWithdraw ? selectedItem?.quantity : undefined}
               style={{ width: "100%" }}
-              placeholder={TH.TRANSACTION.AMOUNT}
+              placeholder={t.TRANSACTION.AMOUNT}
             />
           </Form.Item>
 
-          <Form.Item name="note" label={TH.TRANSACTION.NOTE_OPTIONAL}>
-            <TextArea rows={2} placeholder="ระบุหมายเหตุหรือเหตุผล..." />
+          <Form.Item name="note" label={t.TRANSACTION.NOTE_OPTIONAL}>
+            <TextArea rows={2} placeholder={t.TRANSACTION.NOTE_PLACEHOLDER} />
           </Form.Item>
 
           <Form.Item style={{ marginBottom: 0 }}>
@@ -130,7 +131,7 @@ export const TransactionForm: React.FC<TransactionFormProps> = ({ type }) => {
               size="large"
               className={isReceive ? "submit-btn-receive" : ""}
             >
-              {isReceive ? TH.TRANSACTION.SUBMIT_RECEIVE : TH.TRANSACTION.SUBMIT_WITHDRAW}
+              {isReceive ? t.TRANSACTION.SUBMIT_RECEIVE : t.TRANSACTION.SUBMIT_WITHDRAW}
             </Button>
           </Form.Item>
         </Form>

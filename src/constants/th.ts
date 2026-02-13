@@ -33,6 +33,10 @@ export const TH = {
     QUANTITY: 'จำนวน',
     MIN_QUANTITY: 'ขั้นต่ำ',
     UNIT: 'ชิ้น',
+    PLACEHOLDERS: {
+      NAME: 'เช่น สกรูหัวกลม 3 นิ้ว',
+      CATEGORY: 'เช่น อุปกรณ์ช่าง',
+    },
   },
 
   // Transactions
@@ -46,13 +50,22 @@ export const TH = {
     AMOUNT: 'จำนวน',
     NOTE: 'หมายเหตุ',
     NOTE_OPTIONAL: 'หมายเหตุ (ไม่บังคับ)',
+    NOTE_PLACEHOLDER: 'ระบุหมายเหตุหรือเหตุผล...',
     SUBMIT_RECEIVE: 'รับเข้าคลัง',
     SUBMIT_WITHDRAW: 'เบิกออก',
     HISTORY: 'ประวัติ',
+    ALL: 'ทั้งหมด',
     DATE: 'วันที่',
     TYPE: 'ประเภทรายการ',
     ACTION: 'รายการ',
     USER: 'ผู้ทำรายการ',
+    TYPES: {
+      RECEIVE: 'รับเข้า',
+      WITHDRAW: 'เบิกออก',
+      UPDATE: 'ปรับยอด',
+      DELETE: 'ลบสินค้า',
+      CREATE: 'สร้างสินค้า',
+    },
   },
 
   // Settings
@@ -61,6 +74,11 @@ export const TH = {
     PROFILE: 'โปรไฟล์',
     LOGOUT: 'ออกจากระบบ',
     ABOUT: 'เกี่ยวกับแอป',
+    LANGUAGE: 'ภาษา',
+    ROLES: {
+      ADMIN: 'ผู้ดูแลระบบ',
+      STAFF: 'พนักงาน',
+    },
   },
   
   // Common
@@ -70,5 +88,6 @@ export const TH = {
     ERROR: 'เกิดข้อผิดพลาด',
     CANCEL: 'ยกเลิก',
     CONFIRM: 'ยืนยัน',
+    ALL: 'ทั้งหมด',
   }
 } as const;

@@ -1,15 +1,11 @@
 import React, { useMemo } from "react";
 import { Table, Typography } from "antd";
 import type { ColumnsType } from "antd/es/table";
-import dayjs from "dayjs";
-import "dayjs/locale/th";
-import buddhistEra from "dayjs/plugin/buddhistEra";
 import { TransactionType } from "../../../constants/inventory";
 import type { TransactionWithItem } from "../hooks/useTransactions";
 import { TransactionStatusTag } from "../../../components/common/TransactionStatusTag";
-
-dayjs.extend(buddhistEra);
-dayjs.locale("th");
+import { useTranslation } from "../../../hooks/useTranslation";
+import { formatDate } from "../../../utils/dateUtils";
 
 const { Text } = Typography;
 
@@ -30,18 +26,19 @@ export const TransactionTable: React.FC<TransactionTableProps> = ({
   pageSize,
   onPageChange,
 }) => {
+  const { t, currentLanguage } = useTranslation();
+
   const columns: ColumnsType<TransactionWithItem> = useMemo(
     () => [
       {
-        title: "วันที่/เวลา",
+        title: t.TRANSACTION.DATE,
         dataIndex: "created_at",
         key: "created_at",
         width: 180,
-        render: (date: string) =>
-          dayjs(date).format("D MMM BB HH:mm น."),
+        render: (date: string) => formatDate(date, currentLanguage),
       },
       {
-        title: "รายการ",
+        title: t.TRANSACTION.ACTION,
         key: "item",
         render: (_, record) => {
           if (record.items?.name) {
@@ -55,7 +52,7 @@ export const TransactionTable: React.FC<TransactionTableProps> = ({
         },
       },
       {
-        title: "ประเภท",
+        title: t.TRANSACTION.TYPE,
         dataIndex: "action_type",
         key: "action_type",
         width: 120,
@@ -63,7 +60,7 @@ export const TransactionTable: React.FC<TransactionTableProps> = ({
         render: (type: string) => <TransactionStatusTag type={type} />,
       },
       {
-        title: "จำนวน",
+        title: t.TRANSACTION.AMOUNT,
         dataIndex: "amount",
         key: "amount",
         align: "right",
@@ -88,14 +85,14 @@ export const TransactionTable: React.FC<TransactionTableProps> = ({
         },
       },
       {
-        title: "หมายเหตุ",
+        title: t.TRANSACTION.NOTE,
         dataIndex: "note",
         key: "note",
         ellipsis: true,
         render: (note: string | null) => note || "-",
       },
       {
-        title: "ผู้ทำรายการ",
+        title: t.TRANSACTION.USER,
         dataIndex: "user_email",
         key: "user_email",
         width: 200,
@@ -103,7 +100,7 @@ export const TransactionTable: React.FC<TransactionTableProps> = ({
         render: (email: string | null) => email?.split("@")[0] || "-",
       },
     ],
-    []
+    [t, currentLanguage]
   );
 
   return (
@@ -118,7 +115,7 @@ export const TransactionTable: React.FC<TransactionTableProps> = ({
         total: total,
         onChange: onPageChange,
         showSizeChanger: true,
-        showTotal: (total) => `ทั้งหมด ${total} รายการ`, 
+        showTotal: (total) => `${t.COMMON.ALL} ${total} ${t.INVENTORY.UNIT}`, 
       }}
       scroll={{ x: 800 }}
       style={{

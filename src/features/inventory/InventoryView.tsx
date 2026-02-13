@@ -5,7 +5,7 @@ import type { Item } from "../../types/inventory";
 import { useItems, useDeleteItem } from "./hooks/useItems";
 import { ItemFormModal } from "./components/ItemFormModal";
 import { InventoryTable } from "./components/InventoryTable";
-import { TH } from "../../constants/th";
+import { useTranslation } from "../../hooks/useTranslation";
 import "./styles/InventoryView.css";
 import { handleError } from "../../utils/errorHandler";
 
@@ -19,6 +19,7 @@ export const InventoryView: React.FC = () => {
   const { data: items = [], isLoading } = useItems();
   const deleteItem = useDeleteItem();
   const [messageApi, contextHolder] = message.useMessage();
+  const { t } = useTranslation();
 
   // Filter items by search text
   const filteredItems = useMemo(() => {
@@ -39,7 +40,7 @@ export const InventoryView: React.FC = () => {
   const handleDelete = async (id: number) => {
     try {
       await deleteItem.mutateAsync(id);
-      messageApi.success(TH.COMMON.SUCCESS);
+      messageApi.success(t.COMMON.SUCCESS);
     } catch (error) {
       handleError(error);
     }
@@ -56,19 +57,19 @@ export const InventoryView: React.FC = () => {
       <div className="inventory-header">
         <div className="inventory-title-row">
           <Title level={4} className="inventory-title">
-            {TH.INVENTORY.TITLE}
+            {t.INVENTORY.TITLE}
           </Title>
           <Button
             type="primary"
             icon={<PlusOutlined />}
             onClick={() => setModalOpen(true)}
           >
-            {TH.INVENTORY.ADD_ITEM}
+            {t.INVENTORY.ADD_ITEM}
           </Button>
         </div>
 
         <Input
-          placeholder={TH.INVENTORY.SEARCH}
+          placeholder={t.INVENTORY.SEARCH}
           prefix={<SearchOutlined />}
           value={searchText}
           onChange={(e) => setSearchText(e.target.value)}

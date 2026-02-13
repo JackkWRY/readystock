@@ -6,21 +6,23 @@ import {
   SwapOutlined,
   DatabaseOutlined,
 } from "@ant-design/icons";
-import dayjs from "dayjs";
+
 import { useDashboard } from "./hooks/useDashboard";
-import { TH } from "../../constants/th";
+import { useTranslation } from "../../hooks/useTranslation";
 import "./DashboardView.css";
 import { TransactionStatusTag } from "../../components/common/TransactionStatusTag";
+import { formatDate } from "../../utils/dateUtils";
 
 const { Title, Text } = Typography;
 
 export const DashboardView: React.FC = () => {
   const { stats, lowStockItems, recentTransactions, isLoading } = useDashboard();
+  const { t, currentLanguage } = useTranslation();
 
   return (
     <div className="dashboard-container">
       <Title level={4} className="dashboard-title">
-        {TH.DASHBOARD.OVERVIEW}
+        {t.DASHBOARD.OVERVIEW}
       </Title>
 
       {/* Statistics Cards */}
@@ -28,10 +30,10 @@ export const DashboardView: React.FC = () => {
         <Col xs={24} sm={12} lg={6}>
           <Card loading={isLoading} className="glass-card">
             <Statistic
-              title="สินค้าทั้งหมด"
+              title={t.DASHBOARD.TOTAL_ITEMS}
               value={stats.totalItems}
               prefix={<DatabaseOutlined />}
-              suffix="รายการ"
+              suffix={t.INVENTORY.UNIT}
               valueStyle={{ color: "var(--text-color)" }}
             />
           </Card>
@@ -39,10 +41,10 @@ export const DashboardView: React.FC = () => {
         <Col xs={24} sm={12} lg={6}>
           <Card loading={isLoading} className="glass-card">
             <Statistic
-              title="จำนวนชิ้นรวม"
+              title={t.DASHBOARD.TOTAL_QUANTITY}
               value={stats.totalQuantity}
               prefix={<ShopOutlined />}
-              suffix="ชิ้น"
+              suffix={t.INVENTORY.UNIT}
               valueStyle={{ color: "var(--text-color)" }}
             />
           </Card>
@@ -50,10 +52,10 @@ export const DashboardView: React.FC = () => {
         <Col xs={24} sm={12} lg={6}>
           <Card loading={isLoading} className="glass-card">
             <Statistic
-              title="สินค้าใกล้หมด"
+              title={t.DASHBOARD.LOW_STOCK}
               value={stats.lowStockCount}
               prefix={<WarningOutlined />}
-              suffix="รายการ"
+              suffix={t.INVENTORY.UNIT}
               valueStyle={{ color: "var(--error-color)" }}
             />
           </Card>
@@ -61,10 +63,10 @@ export const DashboardView: React.FC = () => {
         <Col xs={24} sm={12} lg={6}>
           <Card loading={isLoading} className="glass-card">
             <Statistic
-              title="รายการเคลื่อนไหว (5 ล่าสุด)"
+              title={t.DASHBOARD.RECENT_TRANSACTIONS}
               value={stats.recentTransactionsCount}
               prefix={<SwapOutlined />}
-              suffix="รายการ"
+              suffix={t.INVENTORY.UNIT}
               valueStyle={{ color: "var(--text-color)" }}
             />
           </Card>
@@ -75,7 +77,7 @@ export const DashboardView: React.FC = () => {
         {/* Low Stock Items */}
         <Col xs={24} lg={12}>
           <Card 
-            title={<Space><WarningOutlined style={{ color: "#faad14" }} /> {TH.DASHBOARD.LOW_STOCK}</Space>}
+            title={<Space><WarningOutlined style={{ color: "#faad14" }} /> {t.DASHBOARD.LOW_STOCK}</Space>}
             className="glass-card"
             loading={isLoading}
           >
@@ -86,9 +88,9 @@ export const DashboardView: React.FC = () => {
               size="small"
               scroll={{ y: 300 }}
               columns={[
-                { title: TH.INVENTORY.NAME, dataIndex: "name" },
+                { title: t.INVENTORY.NAME, dataIndex: "name" },
                 { 
-                  title: TH.INVENTORY.QUANTITY, 
+                  title: t.INVENTORY.QUANTITY, 
                   dataIndex: "quantity",
                   render: (qty, record) => (
                     <Tag color="error">{qty} / {record.min_quantity}</Tag>
@@ -102,7 +104,7 @@ export const DashboardView: React.FC = () => {
         {/* Recent Transactions */}
         <Col xs={24} lg={12}>
           <Card 
-            title={<Space><SwapOutlined /> {TH.DASHBOARD.RECENT_TRANSACTIONS}</Space>}
+            title={<Space><SwapOutlined /> {t.DASHBOARD.RECENT_TRANSACTIONS}</Space>}
             className="glass-card"
             loading={isLoading}
           >
@@ -114,13 +116,13 @@ export const DashboardView: React.FC = () => {
               scroll={{ y: 300 }}
               columns={[
                 { 
-                  title: TH.TRANSACTION.DATE, 
+                  title: t.TRANSACTION.DATE, 
                   dataIndex: "created_at",
                   width: 140,
-                  render: (date) => dayjs(date).format("D MMM BB HH:mm")
+                  render: (date) => formatDate(date, currentLanguage)
                 },
                 { 
-                  title: TH.TRANSACTION.TYPE, 
+                  title: t.TRANSACTION.TYPE, 
                   key: "action",
                   render: (_, record) => (
                     <Space>
@@ -130,7 +132,7 @@ export const DashboardView: React.FC = () => {
                   )
                 },
                 {
-                    title: TH.TRANSACTION.AMOUNT,
+                    title: t.TRANSACTION.AMOUNT,
                     dataIndex: "amount",
                     align: "right",
                     width: 80,

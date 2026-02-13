@@ -16,7 +16,7 @@ import { useAuthStore } from "../../store/authStore";
 import { useItems } from "../inventory/hooks/useItems";
 import { UserRole } from "../../constants/inventory";
 import { Outlet, useNavigate, useLocation } from "react-router-dom";
-import { TH } from "../../constants/th";
+import { useTranslation } from "../../hooks/useTranslation";
 import "./DashboardLayout.css";
 
 const { Header, Sider, Content } = Layout;
@@ -28,6 +28,7 @@ export const DashboardLayout: React.FC = () => {
   const { data: items = [] } = useItems();
   const navigate = useNavigate();
   const location = useLocation();
+  const { t } = useTranslation();
 
   // Determine active menu key from location
   const activeMenu = useMemo(() => {
@@ -53,7 +54,7 @@ export const DashboardLayout: React.FC = () => {
     {
       key: "logout",
       icon: <LogoutOutlined />,
-      label: TH.SETTINGS.LOGOUT,
+      label: t.SETTINGS.LOGOUT,
       danger: true,
       onClick: logout,
     },
@@ -63,14 +64,14 @@ export const DashboardLayout: React.FC = () => {
     {
       key: "dashboard",
       icon: <AppstoreOutlined />,
-      label: TH.DASHBOARD.TITLE,
+      label: t.DASHBOARD.TITLE,
     },
     {
       key: "inventory",
       icon: <ShopOutlined />,
       label: (
         <span style={{ display: "flex", alignItems: "center", gap: 8 }}>
-          {TH.INVENTORY.TITLE}
+          {t.INVENTORY.TITLE}
           {lowStockCount > 0 && (
             <Badge
               count={lowStockCount}
@@ -84,12 +85,12 @@ export const DashboardLayout: React.FC = () => {
     {
       key: "transactions",
       icon: <SwapOutlined />,
-      label: TH.TRANSACTION.TITLE,
+      label: t.TRANSACTION.TITLE,
     },
     {
       key: "history",
       icon: <HistoryOutlined />,
-      label: TH.TRANSACTION.HISTORY,
+      label: t.TRANSACTION.HISTORY,
     },
     {
       type: "divider",
@@ -97,16 +98,11 @@ export const DashboardLayout: React.FC = () => {
     {
       key: "settings",
       icon: <SettingOutlined />,
-      label: TH.SETTINGS.TITLE,
+      label: t.SETTINGS.TITLE,
     },
   ];
 
-  let roleLabel = "";
-  if (role === UserRole.ADMIN) {
-    roleLabel = "ผู้ดูแลระบบ";
-  } else if (role === UserRole.STAFF) {
-    roleLabel = "พนักงาน";
-  }
+  const roleLabel = role === UserRole.ADMIN ? t.SETTINGS.ROLES.ADMIN : t.SETTINGS.ROLES.STAFF;
 
   return (
     <Layout className="dashboard-layout">

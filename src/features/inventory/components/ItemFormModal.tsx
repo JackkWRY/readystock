@@ -2,8 +2,8 @@ import { useEffect } from "react";
 import { Modal, Form, Input, InputNumber, message } from "antd";
 import type { Item, CreateItemInput } from "../../../types/inventory";
 import { useCreateItem, useUpdateItem } from "../hooks/useItems";
-import { TH } from "../../../constants/th";
 import { handleError } from "../../../utils/errorHandler";
+import { useTranslation } from "../../../hooks/useTranslation";
 import "../styles/ItemFormModal.css";
 
 interface ItemFormModalProps {
@@ -19,6 +19,7 @@ export const ItemFormModal: React.FC<ItemFormModalProps> = ({
 }) => {
   const [form] = Form.useForm<CreateItemInput>();
   const [messageApi, contextHolder] = message.useMessage();
+  const { t } = useTranslation();
 
   const createItem = useCreateItem();
   const updateItem = useUpdateItem();
@@ -40,10 +41,10 @@ export const ItemFormModal: React.FC<ItemFormModalProps> = ({
 
       if (isEditing && editItem) {
         await updateItem.mutateAsync({ id: editItem.id, ...values });
-        messageApi.success(TH.COMMON.SUCCESS);
+        messageApi.success(t.COMMON.SUCCESS);
       } else {
         await createItem.mutateAsync(values);
-        messageApi.success(TH.COMMON.SUCCESS);
+        messageApi.success(t.COMMON.SUCCESS);
       }
 
       onClose();
@@ -62,12 +63,12 @@ export const ItemFormModal: React.FC<ItemFormModalProps> = ({
     <>
       {contextHolder}
       <Modal
-        title={isEditing ? TH.INVENTORY.EDIT_ITEM : TH.INVENTORY.ADD_ITEM}
+        title={isEditing ? t.INVENTORY.EDIT_ITEM : t.INVENTORY.ADD_ITEM}
         open={open}
         onOk={handleSubmit}
         onCancel={handleCancel}
-        okText={TH.COMMON.CONFIRM}
-        cancelText={TH.COMMON.CANCEL}
+        okText={t.COMMON.CONFIRM}
+        cancelText={t.COMMON.CANCEL}
         confirmLoading={isLoading}
         destroyOnHidden
         className="glass-modal"
@@ -84,20 +85,20 @@ export const ItemFormModal: React.FC<ItemFormModalProps> = ({
         >
           <Form.Item
             name="name"
-            label={TH.INVENTORY.NAME}
+            label={t.INVENTORY.NAME}
             rules={[{ required: true, message: "กรุณากรอกชื่อสินค้า" }]}
           >
-            <Input placeholder="เช่น สกรูหัวกลม 3 นิ้ว" />
+            <Input placeholder={t.INVENTORY.PLACEHOLDERS.NAME} />
           </Form.Item>
 
-          <Form.Item name="category" label={TH.INVENTORY.CATEGORY}>
-            <Input placeholder="เช่น อุปกรณ์ช่าง" />
+          <Form.Item name="category" label={t.INVENTORY.CATEGORY}>
+            <Input placeholder={t.INVENTORY.PLACEHOLDERS.CATEGORY} />
           </Form.Item>
 
           <div className="item-form-grid">
             <Form.Item
               name="quantity"
-              label={TH.INVENTORY.QUANTITY}
+              label={t.INVENTORY.QUANTITY}
               rules={[{ required: true, message: "กรุณากรอกจำนวน" }]}
             >
               <InputNumber
@@ -109,7 +110,7 @@ export const ItemFormModal: React.FC<ItemFormModalProps> = ({
 
             <Form.Item
               name="min_quantity"
-              label={TH.INVENTORY.MIN_QUANTITY}
+              label={t.INVENTORY.MIN_QUANTITY}
               rules={[{ required: true, message: "กรุณากรอกจำนวนขั้นต่ำ" }]}
             >
               <InputNumber
