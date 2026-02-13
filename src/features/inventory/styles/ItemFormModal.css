@@ -1,0 +1,13 @@
+.item-form-modal-content {
+  margin-top: 24px;
+}
+
+.item-form-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 16px;
+}
+
+.item-form-input-number {
+  width: 100%;
+}

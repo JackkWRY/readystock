@@ -32,7 +32,7 @@ export const DashboardView: React.FC = () => {
               value={stats.totalItems}
               prefix={<DatabaseOutlined />}
               suffix="รายการ"
-              valueStyle={{ color: "#fff" }}
+              valueStyle={{ color: "var(--text-color)" }}
             />
           </Card>
         </Col>
@@ -43,7 +43,7 @@ export const DashboardView: React.FC = () => {
               value={stats.totalQuantity}
               prefix={<ShopOutlined />}
               suffix="ชิ้น"
-              valueStyle={{ color: "#fff" }}
+              valueStyle={{ color: "var(--text-color)" }}
             />
           </Card>
         </Col>
@@ -54,7 +54,7 @@ export const DashboardView: React.FC = () => {
               value={stats.lowStockCount}
               prefix={<WarningOutlined />}
               suffix="รายการ"
-              valueStyle={{ color: "#cf1322" }}
+              valueStyle={{ color: "var(--error-color)" }}
             />
           </Card>
         </Col>
@@ -65,7 +65,7 @@ export const DashboardView: React.FC = () => {
               value={stats.recentTransactionsCount}
               prefix={<SwapOutlined />}
               suffix="รายการ"
-              valueStyle={{ color: "#fff" }}
+              valueStyle={{ color: "var(--text-color)" }}
             />
           </Card>
         </Col>

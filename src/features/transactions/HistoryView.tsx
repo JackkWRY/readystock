@@ -3,6 +3,7 @@ import { Card, Typography, Space, Select } from "antd";
 import { useTransactions } from "./hooks/useTransactions";
 import { TransactionTable } from "./components/TransactionTable";
 import { TransactionType } from "../../constants/inventory";
+import "./styles/HistoryView.css";
 
 const { Title } = Typography;
 
@@ -33,16 +34,10 @@ export const HistoryView: React.FC = () => {
   };
 
   return (
-    <div style={{ padding: 24 }}>
-      <Space direction="vertical" size="large" style={{ width: "100%" }}>
-        <div
-          style={{
-            display: "flex",
-            justifyContent: "space-between",
-            alignItems: "center",
-          }}
-        >
-          <Title level={4} style={{ margin: 0, color: "#fff" }}>
+    <div className="history-container">
+      <Space direction="vertical" size="large" className="history-content">
+        <div className="history-header">
+          <Title level={4} className="history-title">
             ประวัติการทำรายการ
           </Title>
 
@@ -50,7 +45,7 @@ export const HistoryView: React.FC = () => {
             <Select
               value={typeFilter}
               onChange={handleFilterChange}
-              style={{ width: 140 }}
+              className="history-filter"
               options={[
                 { value: "all", label: "ทั้งหมด" },
                 { value: TransactionType.RECEIVE, label: "รับเข้า" },

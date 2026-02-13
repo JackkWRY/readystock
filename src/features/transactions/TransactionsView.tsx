@@ -1,7 +1,9 @@
+import React from "react";
 import { Tabs, Typography } from "antd";
 import { PlusCircleOutlined, SendOutlined } from "@ant-design/icons";
 import { TransactionForm } from "./components/TransactionForm";
 import { TransactionType } from "../../constants/inventory";
+import "./styles/TransactionsView.css";
 
 const { Title } = Typography;
 
@@ -28,21 +30,19 @@ export const TransactionsView: React.FC = () => {
   ];
 
   return (
-    <div>
-      <Title level={4} style={{ margin: "0 0 24px", color: "#fff" }}>
+    <div className="transactions-container">
+      <Title level={4} className="transactions-title">
         เบิก-รับสินค้า
       </Title>
 
-      <Tabs
-        defaultActiveKey="in"
-        items={tabItems}
-        type="card"
-        style={{
-          background: "rgba(255,255,255,0.03)",
-          padding: 16,
-          borderRadius: 12,
-        }}
-      />
+      <div className="transactions-card">
+        <Tabs
+          defaultActiveKey="in"
+          items={tabItems}
+          type="card"
+          className="glass-tabs"
+        />
+      </div>
     </div>
   );
 };

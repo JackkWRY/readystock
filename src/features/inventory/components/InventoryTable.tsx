@@ -8,6 +8,7 @@ import {
 } from "@ant-design/icons";
 import type { Item } from "../../../types/inventory";
 import { TH } from "../../../constants/th";
+import { TableSkeleton } from "../../../components/common/TableSkeleton";
 
 interface InventoryTableProps {
   items: Item[];
@@ -16,8 +17,6 @@ interface InventoryTableProps {
   onDelete: (id: number) => void;
   isDeleting?: boolean;
 }
-
-import { TableSkeleton } from "../../../components/common/TableSkeleton";
 
 export const InventoryTable: React.FC<InventoryTableProps> = ({
   items,
@@ -34,7 +33,7 @@ export const InventoryTable: React.FC<InventoryTableProps> = ({
       sorter: (a, b) => a.name.localeCompare(b.name),
       render: (name: string, record) => (
         <Space>
-          <span style={{ fontWeight: 500 }}>{name}</span>
+          <span className="text-medium">{name}</span>
           {record.quantity <= record.min_quantity && (
             <WarningOutlined style={{ color: "#faad14" }} />
           )}
@@ -117,10 +116,7 @@ export const InventoryTable: React.FC<InventoryTableProps> = ({
         showSizeChanger: true,
         showTotal: (total) => `${TH.DASHBOARD.TOTAL_ITEMS} ${total} รายการ`,
       }}
-      style={{
-        background: "rgba(255,255,255,0.05)",
-        borderRadius: 12,
-      }}
+      className="inventory-table"
     />
   );
 };

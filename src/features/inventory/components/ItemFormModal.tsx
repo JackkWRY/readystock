@@ -3,6 +3,8 @@ import { Modal, Form, Input, InputNumber, message } from "antd";
 import type { Item, CreateItemInput } from "../../../types/inventory";
 import { useCreateItem, useUpdateItem } from "../hooks/useItems";
 import { TH } from "../../../constants/th";
+import { handleError } from "../../../utils/errorHandler";
+import "../styles/ItemFormModal.css";
 
 interface ItemFormModalProps {
   open: boolean;
@@ -41,15 +43,13 @@ export const ItemFormModal: React.FC<ItemFormModalProps> = ({
         messageApi.success(TH.COMMON.SUCCESS);
       } else {
         await createItem.mutateAsync(values);
-        messageApi.success(TH.COMMON.SUCCESS); // Or specific success message
+        messageApi.success(TH.COMMON.SUCCESS);
       }
 
       onClose();
       form.resetFields();
     } catch (error) {
-      if (error instanceof Error) {
-        messageApi.error(error.message);
-      }
+      handleError(error);
     }
   };
 
@@ -76,7 +76,7 @@ export const ItemFormModal: React.FC<ItemFormModalProps> = ({
         <Form
           form={form}
           layout="vertical"
-          style={{ marginTop: 24 }}
+          className="item-form-modal-content"
           initialValues={{
             quantity: 0,
             min_quantity: 5,
@@ -94,7 +94,7 @@ export const ItemFormModal: React.FC<ItemFormModalProps> = ({
             <Input placeholder="เช่น อุปกรณ์ช่าง" />
           </Form.Item>
 
-          <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 16 }}>
+          <div className="item-form-grid">
             <Form.Item
               name="quantity"
               label={TH.INVENTORY.QUANTITY}
@@ -102,7 +102,7 @@ export const ItemFormModal: React.FC<ItemFormModalProps> = ({
             >
               <InputNumber
                 min={0}
-                style={{ width: "100%" }}
+                className="item-form-input-number"
                 placeholder="0"
               />
             </Form.Item>
@@ -114,7 +114,7 @@ export const ItemFormModal: React.FC<ItemFormModalProps> = ({
             >
               <InputNumber
                 min={0}
-                style={{ width: "100%" }}
+                className="item-form-input-number"
                 placeholder="5"
               />
             </Form.Item>

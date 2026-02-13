@@ -1,0 +1,23 @@
+.history-container {
+  padding: 24px;
+}
+
+.history-content {
+  width: 100%;
+}
+
+.history-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 24px;
+}
+
+.history-title {
+  margin: 0 !important;
+  color: var(--text-color) !important;
+}
+
+.history-filter {
+  width: 140px;
+}

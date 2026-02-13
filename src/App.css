@@ -40,3 +40,17 @@
 .read-the-docs {
   color: #888;
 }
+
+.app-layout {
+  min-height: 100vh;
+}
+
+.app-loading-container {
+  padding: 50px;
+  text-align: center;
+  color: rgba(255, 255, 255, 0.6);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  height: 100vh;
+}
