@@ -159,4 +159,4 @@ npm run build
 
 ## 📄 License
 
-This project is private.
+This project is licensed under the **MIT License** - free to use and modify.
