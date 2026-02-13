@@ -84,11 +84,23 @@ create trigger on_auth_user_created
 create or replace function log_item_create_update()
 returns trigger as $$
 BEGIN
+  -- Prevent redundant logging if the operation is handled by an RPC (e.g. receive/withdraw)
+  -- The RPC will set 'app.skip_log' to true before updating items.
+  IF current_setting('app.skip_log', true) = 'true' THEN
+    RETURN NEW;
+  END IF;
+
   IF (TG_OP = 'INSERT') THEN
     INSERT INTO transactions (item_id, action_type, amount, note, user_email)
     VALUES (NEW.id, 'CREATE', NEW.quantity, 'Item created', COALESCE(auth.jwt() ->> 'email', 'system'));
   ELSIF (TG_OP = 'UPDATE') THEN
-    IF (OLD.quantity <> NEW.quantity) THEN
+    -- Check for Soft Delete (is_deleted changed from false to true)
+    IF (OLD.is_deleted = false AND NEW.is_deleted = true) THEN
+       INSERT INTO transactions (item_id, action_type, amount, note, user_email)
+       VALUES (NEW.id, 'DELETE', -OLD.quantity, 'Item deleted: ' || OLD.name, COALESCE(auth.jwt() ->> 'email', 'system'));
+    
+    -- Check for Quantity Change (only if not deleted)
+    ELSIF (OLD.quantity <> NEW.quantity) THEN
       INSERT INTO transactions (item_id, action_type, amount, note, user_email)
       VALUES (NEW.id, 'UPDATE', NEW.quantity - OLD.quantity, 
               'System Update: Qty changed from ' || OLD.quantity || ' to ' || NEW.quantity, 
@@ -103,28 +115,7 @@ create trigger trg_log_item_create_update
   after insert or update on public.items
   for each row execute procedure log_item_create_update();
 
--- C) Log Item Deletion
-create or replace function log_item_changes()
-returns trigger as $$
-DECLARE
-  current_user_email text;
-BEGIN
-  -- Get current user email from Auth system
-  current_user_email := auth.jwt() ->> 'email';
-  
-  -- Handle DELETE operation
-  IF (TG_OP = 'DELETE') THEN
-    INSERT INTO transactions (item_id, action_type, amount, note, user_email)
-    VALUES (OLD.id, 'DELETE', OLD.quantity, 'Item deleted: ' || OLD.name, COALESCE(current_user_email, 'system'));
-  END IF;
-  
-  RETURN OLD;
-END;
-$$ language plpgsql security definer;
 
-create trigger trg_log_item_delete
-  after delete on public.items
-  for each row execute procedure log_item_changes();
 
 
 -- D) Role Sync (Profile -> Auth Metadata)
@@ -148,6 +139,10 @@ create trigger on_profile_role_change
 
 -- 5. RPC Functions (Backend Logic)
 
+-- Drop existing functions to avoid parameter name conflict errors
+DROP FUNCTION IF EXISTS receive_item(bigint, bigint, text, text);
+DROP FUNCTION IF EXISTS withdraw_item(bigint, bigint, text, text);
+
 create or replace function receive_item(
   t_item_id bigint,
   t_amount bigint,
@@ -156,12 +151,15 @@ create or replace function receive_item(
 )
 returns void as $$
 begin
+  -- Set flag to skip trigger logging (prevent duplicate logs)
+  perform set_config('app.skip_log', 'true', true);
+
   -- Update item quantity
   update public.items
   set quantity = quantity + t_amount
   where id = t_item_id;
 
-  -- Log transaction
+  -- Log transaction (Specific Action)
   insert into public.transactions (item_id, action_type, amount, note, user_email)
   values (t_item_id, 'RECEIVE', t_amount, t_note, t_user_email);
 end;
@@ -180,12 +178,15 @@ begin
     raise exception 'Insufficient stock quantity';
   end if;
 
+  -- Set flag to skip trigger logging (prevent duplicate logs)
+  perform set_config('app.skip_log', 'true', true);
+
   -- Update item quantity
   update public.items
   set quantity = quantity - t_amount
   where id = t_item_id;
 
-  -- Log transaction
+  -- Log transaction (Specific Action)
   insert into public.transactions (item_id, action_type, amount, note, user_email)
   values (t_item_id, 'WITHDRAW', -t_amount, t_note, t_user_email);
 end;
