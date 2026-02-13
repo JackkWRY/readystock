@@ -5,6 +5,9 @@ import type { Item } from "../../types/inventory";
 import { useItems, useDeleteItem } from "./hooks/useItems";
 import { ItemFormModal } from "./components/ItemFormModal";
 import { InventoryTable } from "./components/InventoryTable";
+import { TH } from "../../constants/th";
+import "./styles/InventoryView.css";
+import { handleError } from "../../utils/errorHandler";
 
 const { Title } = Typography;
 
@@ -36,11 +39,9 @@ export const InventoryView: React.FC = () => {
   const handleDelete = async (id: number) => {
     try {
       await deleteItem.mutateAsync(id);
-      messageApi.success("ลบสินค้าสำเร็จ");
+      messageApi.success(TH.COMMON.SUCCESS);
     } catch (error) {
-      if (error instanceof Error) {
-        messageApi.error(error.message);
-      }
+      handleError(error);
     }
   };
 
@@ -52,33 +53,26 @@ export const InventoryView: React.FC = () => {
   return (
     <>
       {contextHolder}
-      <div style={{ marginBottom: 24 }}>
-        <div
-          style={{
-            display: "flex",
-            justifyContent: "space-between",
-            alignItems: "center",
-            marginBottom: 16,
-          }}
-        >
-          <Title level={4} style={{ margin: 0, color: "#fff" }}>
-            คลังสินค้า
+      <div className="inventory-header">
+        <div className="inventory-title-row">
+          <Title level={4} className="inventory-title">
+            {TH.INVENTORY.TITLE}
           </Title>
           <Button
             type="primary"
             icon={<PlusOutlined />}
             onClick={() => setModalOpen(true)}
           >
-            เพิ่มสินค้า
+            {TH.INVENTORY.ADD_ITEM}
           </Button>
         </div>
 
         <Input
-          placeholder="ค้นหาสินค้า..."
+          placeholder={TH.INVENTORY.SEARCH}
           prefix={<SearchOutlined />}
           value={searchText}
           onChange={(e) => setSearchText(e.target.value)}
-          style={{ maxWidth: 320 }}
+          className="inventory-search"
           allowClear
         />
       </div>

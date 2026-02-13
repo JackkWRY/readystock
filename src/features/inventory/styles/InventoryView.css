@@ -1,0 +1,19 @@
+.inventory-header {
+  margin-bottom: var(--spacing-lg);
+}
+
+.inventory-title-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: var(--spacing-md);
+}
+
+.inventory-title {
+  margin: 0 !important;
+  color: var(--text-primary) !important;
+}
+
+.inventory-search {
+  max-width: 320px;
+}

@@ -15,27 +15,26 @@ import {
 import { useAuthStore } from "../../store/authStore";
 import { useItems } from "../inventory/hooks/useItems";
 import { UserRole } from "../../constants/inventory";
+import { Outlet, useNavigate, useLocation } from "react-router-dom";
+import { TH } from "../../constants/th";
 import "./DashboardLayout.css";
 
 const { Header, Sider, Content } = Layout;
 const { Text } = Typography;
 
-export type MenuKey = "dashboard" | "inventory" | "transactions" | "history" | "settings";
-
-interface DashboardLayoutProps {
-  children: React.ReactNode;
-  activeMenu?: MenuKey;
-  onMenuChange?: (key: MenuKey) => void;
-}
-
-export const DashboardLayout: React.FC<DashboardLayoutProps> = ({
-  children,
-  activeMenu = "inventory",
-  onMenuChange,
-}) => {
+export const DashboardLayout: React.FC = () => {
   const [collapsed, setCollapsed] = useState(false);
   const { user, role, logout } = useAuthStore();
   const { data: items = [] } = useItems();
+  const navigate = useNavigate();
+  const location = useLocation();
+
+  // Determine active menu key from location
+  const activeMenu = useMemo(() => {
+    const path = location.pathname.substring(1); // remove leading slash
+    if (!path) return "dashboard";
+    return path.split("/")[0]; // handle nested routes if any
+  }, [location.pathname]);
 
   // Count low stock items
   const lowStockCount = useMemo(() => {
@@ -43,14 +42,18 @@ export const DashboardLayout: React.FC<DashboardLayoutProps> = ({
   }, [items]);
 
   const handleMenuClick: MenuProps["onClick"] = ({ key }) => {
-    onMenuChange?.(key as MenuKey);
+    if (key === "dashboard") {
+      navigate("/");
+    } else {
+      navigate(`/${key}`);
+    }
   };
 
   const userMenuItems: MenuProps["items"] = [
     {
       key: "logout",
       icon: <LogoutOutlined />,
-      label: "ออกจากระบบ",
+      label: TH.SETTINGS.LOGOUT,
       danger: true,
       onClick: logout,
     },
@@ -60,20 +63,19 @@ export const DashboardLayout: React.FC<DashboardLayoutProps> = ({
     {
       key: "dashboard",
       icon: <AppstoreOutlined />,
-      label: "ภาพรวม",
+      label: TH.DASHBOARD.TITLE,
     },
     {
       key: "inventory",
-      icon: <ShopOutlined />, // Changed icon to verify visual distinction
-
+      icon: <ShopOutlined />,
       label: (
         <span style={{ display: "flex", alignItems: "center", gap: 8 }}>
-          คลังสินค้า
+          {TH.INVENTORY.TITLE}
           {lowStockCount > 0 && (
             <Badge
               count={lowStockCount}
               size="small"
-              style={{ backgroundColor: "#faad14" }}
+              style={{ backgroundColor: "var(--warning-color)" }}
             />
           )}
         </span>
@@ -82,12 +84,12 @@ export const DashboardLayout: React.FC<DashboardLayoutProps> = ({
     {
       key: "transactions",
       icon: <SwapOutlined />,
-      label: "เบิก-รับสินค้า",
+      label: TH.TRANSACTION.TITLE,
     },
     {
       key: "history",
       icon: <HistoryOutlined />,
-      label: "ประวัติ",
+      label: TH.TRANSACTION.HISTORY,
     },
     {
       type: "divider",
@@ -95,7 +97,7 @@ export const DashboardLayout: React.FC<DashboardLayoutProps> = ({
     {
       key: "settings",
       icon: <SettingOutlined />,
-      label: "ตั้งค่า",
+      label: TH.SETTINGS.TITLE,
     },
   ];
 
@@ -165,10 +167,11 @@ export const DashboardLayout: React.FC<DashboardLayoutProps> = ({
         </Header>
 
         {/* Content */}
-        <Content className="dashboard-content">{children}</Content>
+        <Content className="dashboard-content">
+          <Outlet />
+        </Content>
       </Layout>
     </Layout>
   );
 };
-
 export default DashboardLayout;

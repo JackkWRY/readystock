@@ -3,6 +3,8 @@ import { SendOutlined, PlusCircleOutlined } from "@ant-design/icons";
 import { useStockTransactionForm } from "../hooks/useStockTransactionForm";
 import { TransactionType } from "../../../constants/inventory";
 import type { Item } from "../../../types/inventory";
+import { TH } from "../../../constants/th";
+import "./styles/TransactionForm.css";
 
 const { Text } = Typography;
 const { TextArea } = Input;
@@ -30,14 +32,13 @@ export const TransactionForm: React.FC<TransactionFormProps> = ({ type }) => {
     <>
       {contextHolder}
       <Card
-        className="glass-card"
+        className="glass-card transaction-card"
         title={
           <Space>
             {isReceive ? <PlusCircleOutlined /> : <SendOutlined />}
-            <span>{isReceive ? "รับสินค้าเข้าคลัง" : "เบิกสินค้าออก"}</span>
+            <span>{isReceive ? TH.TRANSACTION.RECEIVE_TITLE : TH.TRANSACTION.WITHDRAW_TITLE}</span>
           </Space>
         }
-        style={{ maxWidth: 600 }}
       >
         <Form
           form={form}
@@ -47,12 +48,12 @@ export const TransactionForm: React.FC<TransactionFormProps> = ({ type }) => {
         >
           <Form.Item
             name="item_id"
-            label="เลือกสินค้า"
+            label={TH.TRANSACTION.SELECT_ITEM}
             rules={[{ required: true, message: "กรุณาเลือกสินค้า" }]}
           >
             <Select
               showSearch
-              placeholder="ค้นหาและเลือกสินค้า..."
+              placeholder={TH.INVENTORY.SEARCH}
               loading={itemsLoading}
               filterOption={filterOption}
               options={items.map((item: Item) => ({
@@ -63,32 +64,23 @@ export const TransactionForm: React.FC<TransactionFormProps> = ({ type }) => {
           </Form.Item>
 
           {selectedItem && (
-            <div
-              style={{
-                padding: "12px 16px",
-                background: "rgba(255,255,255,0.05)",
-                borderRadius: 8,
-                marginBottom: 16,
-              }}
-            >
+            <div className="item-details-container">
               <Space orientation="vertical" size={4}>
-                <Text style={{ color: "rgba(255,255,255,0.6)" }}>
+                <Text className="item-details-label">
                   คงเหลือ:{" "}
                   <Text
-                    strong
-                    style={{
-                      color:
-                        selectedItem.quantity <= selectedItem.min_quantity
-                          ? "#faad14"
-                          : "#52c41a",
-                    }}
+                    className={`item-quantity-text ${
+                      selectedItem.quantity <= selectedItem.min_quantity
+                        ? "item-quantity-warning"
+                        : "item-quantity-success"
+                    }`}
                   >
-                    {selectedItem.quantity} ชิ้น
+                    {selectedItem.quantity} {TH.INVENTORY.UNIT}
                   </Text>
                 </Text>
                 {selectedItem.category && (
-                  <Text style={{ color: "rgba(255,255,255,0.5)", fontSize: 12 }}>
-                    หมวดหมู่: {selectedItem.category}
+                  <Text className="item-category-text">
+                    {TH.INVENTORY.CATEGORY}: {selectedItem.category}
                   </Text>
                 )}
               </Space>
@@ -97,7 +89,7 @@ export const TransactionForm: React.FC<TransactionFormProps> = ({ type }) => {
 
           <Form.Item
             name="quantity"
-            label="จำนวน"
+            label={TH.TRANSACTION.AMOUNT}
             rules={[
               { required: true, message: "กรุณากรอกจำนวน" },
               {
@@ -120,11 +112,11 @@ export const TransactionForm: React.FC<TransactionFormProps> = ({ type }) => {
               min={1}
               max={isWithdraw ? selectedItem?.quantity : undefined}
               style={{ width: "100%" }}
-              placeholder="กรอกจำนวน"
+              placeholder={TH.TRANSACTION.AMOUNT}
             />
           </Form.Item>
 
-          <Form.Item name="note" label="หมายเหตุ (ไม่บังคับ)">
+          <Form.Item name="note" label={TH.TRANSACTION.NOTE_OPTIONAL}>
             <TextArea rows={2} placeholder="ระบุหมายเหตุหรือเหตุผล..." />
           </Form.Item>
 
@@ -136,11 +128,9 @@ export const TransactionForm: React.FC<TransactionFormProps> = ({ type }) => {
               icon={isReceive ? <PlusCircleOutlined /> : <SendOutlined />}
               block
               size="large"
-              style={{
-                background: isReceive ? "#52c41a" : undefined,
-              }}
+              className={isReceive ? "submit-btn-receive" : ""}
             >
-              {isReceive ? "รับเข้าคลัง" : "เบิกออก"}
+              {isReceive ? TH.TRANSACTION.SUBMIT_RECEIVE : TH.TRANSACTION.SUBMIT_WITHDRAW}
             </Button>
           </Form.Item>
         </Form>

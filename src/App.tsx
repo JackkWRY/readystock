@@ -1,8 +1,9 @@
-import { useEffect, useState } from "react";
+import { useEffect } from "react";
 import { ConfigProvider, Spin, theme } from "antd";
 import { useAuthStore } from "./store/authStore";
 import { LoginView } from "./features/auth/LoginView";
-import { DashboardLayout, type MenuKey } from "./features/dashboard/DashboardLayout";
+import { DashboardLayout } from "./features/dashboard/DashboardLayout";
+import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 import { DashboardView } from "./features/dashboard/DashboardView";
 import { InventoryView } from "./features/inventory/InventoryView";
 import { TransactionsView } from "./features/transactions/TransactionsView";
@@ -14,29 +15,10 @@ import { GlobalErrorFallback } from "./components/GlobalErrorFallback";
 
 function App() {
   const { user, isLoading, initialize } = useAuthStore();
-  const [activeMenu, setActiveMenu] = useState<MenuKey>("dashboard");
 
   useEffect(() => {
     initialize();
   }, [initialize]);
-
-  // Render content based on active menu
-  const renderContent = () => {
-    switch (activeMenu) {
-      case "dashboard":
-        return <DashboardView />;
-      case "inventory":
-        return <InventoryView />;
-      case "transactions":
-        return <TransactionsView />;
-      case "history":
-        return <HistoryView />;
-      case "settings":
-        return <SettingsView />;
-      default:
-        return <DashboardView />;
-    }
-  };
 
   return (
     <ConfigProvider
@@ -91,12 +73,31 @@ function App() {
               </div>
             </Spin>
           </div>
-        ) : user ? (
-          <DashboardLayout activeMenu={activeMenu} onMenuChange={setActiveMenu}>
-            {renderContent()}
-          </DashboardLayout>
         ) : (
-          <LoginView />
+          <BrowserRouter>
+            <Routes>
+              {/* Public Routes */}
+              <Route 
+                path="/login" 
+                element={user ? <Navigate to="/" replace /> : <LoginView />} 
+              />
+
+              {/* Protected Routes */}
+              <Route 
+                path="/" 
+                element={user ? <DashboardLayout /> : <Navigate to="/login" replace />}
+              >
+                <Route index element={<DashboardView />} />
+                <Route path="inventory" element={<InventoryView />} />
+                <Route path="transactions" element={<TransactionsView />} />
+                <Route path="history" element={<HistoryView />} />
+                <Route path="settings" element={<SettingsView />} />
+              </Route>
+
+              {/* Catch all */}
+              <Route path="*" element={<Navigate to="/" replace />} />
+            </Routes>
+          </BrowserRouter>
         )}
       </ErrorBoundary>
     </ConfigProvider>

@@ -14,6 +14,8 @@ import {
 } from "@ant-design/icons";
 import { useAuthStore } from "../../store/authStore";
 import { UserRole } from "../../constants/inventory";
+import { TH } from "../../constants/th";
+import "./SettingsView.css";
 
 const { Title, Text } = Typography;
 
@@ -30,38 +32,30 @@ export const SettingsView: React.FC = () => {
 
   const handleLogout = () => {
     logout();
-    messageApi.success("ออกจากระบบสำเร็จ");
+    messageApi.success(TH.COMMON.SUCCESS);
   };
 
   return (
     <>
       {contextHolder}
-      <div style={{ maxWidth: 800 }}>
-        <Title level={4} style={{ margin: "0 0 24px", color: "#fff" }}>
-          ตั้งค่า
+      <div className="settings-container">
+        <Title level={4} className="settings-title">
+          {TH.SETTINGS.TITLE}
         </Title>
 
         {/* User Profile Section */}
-        <Card className="glass-card" style={{ marginBottom: 16 }}>
+        <Card className="glass-card settings-card">
           <Space size={16} align="start">
             <Avatar size={64} icon={<UserOutlined />} />
             <div>
-              <Title level={5} style={{ margin: 0, color: "#fff" }}>
+              <Title level={5} className="user-profile-title">
                 {user?.email?.split("@")[0] || "User"}
               </Title>
-              <Text style={{ color: "rgba(255,255,255,0.6)" }}>
+              <Text className="user-profile-email">
                 {user?.email}
               </Text>
               <div style={{ marginTop: 8 }}>
-                <Text
-                  style={{
-                    padding: "2px 8px",
-                    background: "rgba(0, 172, 193, 0.2)",
-                    borderRadius: 4,
-                    fontSize: 12,
-                    color: "#00ACC1",
-                  }}
-                >
+                <Text className="user-role-badge">
                   {roleLabel}
                 </Text>
               </div>
@@ -71,29 +65,28 @@ export const SettingsView: React.FC = () => {
 
         {/* About Section */}
         <Card
-          className="glass-card"
-          style={{ marginBottom: 16 }}
+          className="glass-card settings-card"
           title={
             <Space>
               <InfoCircleOutlined />
-              <span>เกี่ยวกับแอป</span>
+              <span>{TH.SETTINGS.ABOUT}</span>
             </Space>
           }
         >
           <Space orientation="vertical" size={4}>
-            <Text style={{ color: "rgba(255,255,255,0.8)" }}>
+            <Text className="about-text">
               <strong>ReadyStock</strong> - ระบบจัดการคลังสินค้า
             </Text>
-            <Text style={{ color: "rgba(255,255,255,0.5)", fontSize: 12 }}>
+            <Text className="about-subtext">
               Version 1.0.0
             </Text>
-            <Text style={{ color: "rgba(255,255,255,0.5)", fontSize: 12 }}>
+            <Text className="about-subtext">
               © 2026 ReadyStock. All rights reserved.
             </Text>
           </Space>
         </Card>
 
-        <Divider style={{ borderColor: "rgba(255,255,255,0.1)" }} />
+        <Divider className="settings-divider" />
 
         {/* Logout Button */}
         <Button
@@ -103,7 +96,7 @@ export const SettingsView: React.FC = () => {
           size="large"
           block
         >
-          ออกจากระบบ
+          {TH.SETTINGS.LOGOUT}
         </Button>
       </div>
     </>

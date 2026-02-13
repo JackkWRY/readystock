@@ -1,8 +1,11 @@
 import { useState } from 'react';
 import { Form, Input, Button, Card, Typography, message, Space } from 'antd';
 import { LockOutlined, UserOutlined, ShopOutlined } from '@ant-design/icons';
-import { supabase } from '../../lib/supabaseClient';
+
 import { useAuthStore } from '../../store/authStore';
+import { TH } from '../../constants/th';
+import './LoginView.css';
+import { handleError } from '../../utils/errorHandler';
 
 const { Title, Text } = Typography;
 
@@ -14,30 +17,16 @@ interface LoginFormValues {
 export const LoginView: React.FC = () => {
   const [loading, setLoading] = useState(false);
   const [messageApi, contextHolder] = message.useMessage();
-  const { setUser, setSession } = useAuthStore();
+  const { login } = useAuthStore();
 
   const handleLogin = async (values: LoginFormValues) => {
     setLoading(true);
 
     try {
-      const { data, error } = await supabase.auth.signInWithPassword({
-        email: values.email,
-        password: values.password,
-      });
-
-      if (error) {
-        messageApi.error(error.message);
-        return;
-      }
-
-      if (data.session && data.user) {
-        setSession(data.session);
-        setUser(data.user);
-        messageApi.success('เข้าสู่ระบบสำเร็จ!');
-      }
+      await login(values.email, values.password);
+      messageApi.success(TH.LOGIN.SUCCESS);
     } catch (err) {
-      messageApi.error('เกิดข้อผิดพลาด กรุณาลองใหม่อีกครั้ง');
-      console.error('Login error:', err);
+      handleError(err, TH.LOGIN.ERROR_INVALID);
     } finally {
       setLoading(false);
     }
@@ -46,42 +35,23 @@ export const LoginView: React.FC = () => {
   return (
     <>
       {contextHolder}
-      <div
-        style={{
-          minHeight: '100vh',
-          display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'center',
-          padding: 24,
-        }}
-      >
+      <div className="login-container">
         <Card
-          className="glass-card"
-          style={{
-            width: '100%',
-            maxWidth: 420,
-            padding: '24px 16px',
-          }}
+          className="glass-card login-card"
           bordered={false}
         >
           <Space
             orientation="vertical"
             size="large"
-            style={{ width: '100%', textAlign: 'center' }}
+            className="login-content"
           >
             {/* Logo & Branding */}
             <div>
-              <ShopOutlined
-                style={{
-                  fontSize: 56,
-                  color: '#00ACC1',
-                  marginBottom: 16,
-                }}
-              />
-              <Title level={2} style={{ margin: 0, color: '#fff' }}>
+              <ShopOutlined className="login-logo-icon" />
+              <Title level={2} className="login-title">
                 ReadyStock
               </Title>
-              <Text type="secondary" style={{ fontSize: 14 }}>
+              <Text type="secondary" className="login-subtitle">
                 ระบบจัดการคลังสินค้า
               </Text>
             </div>
@@ -92,7 +62,7 @@ export const LoginView: React.FC = () => {
               onFinish={handleLogin}
               layout="vertical"
               size="large"
-              style={{ textAlign: 'left' }}
+              className="login-form"
             >
               <Form.Item
                 name="email"
@@ -102,8 +72,8 @@ export const LoginView: React.FC = () => {
                 ]}
               >
                 <Input
-                  prefix={<UserOutlined style={{ color: 'rgba(255,255,255,0.5)' }} />}
-                  placeholder="อีเมล"
+                  prefix={<UserOutlined className="login-input-icon" />}
+                  placeholder={TH.LOGIN.EMAIL}
                   autoComplete="email"
                 />
               </Form.Item>
@@ -116,8 +86,8 @@ export const LoginView: React.FC = () => {
                 ]}
               >
                 <Input.Password
-                  prefix={<LockOutlined style={{ color: 'rgba(255,255,255,0.5)' }} />}
-                  placeholder="รหัสผ่าน"
+                  prefix={<LockOutlined className="login-input-icon" />}
+                  placeholder={TH.LOGIN.PASSWORD}
                   autoComplete="current-password"
                 />
               </Form.Item>
@@ -128,13 +98,9 @@ export const LoginView: React.FC = () => {
                   htmlType="submit"
                   loading={loading}
                   block
-                  style={{
-                    height: 48,
-                    fontSize: 16,
-                    fontWeight: 500,
-                  }}
+                  className="login-button"
                 >
-                  เข้าสู่ระบบ
+                  {TH.LOGIN.SUBMIT}
                 </Button>
               </Form.Item>
             </Form>

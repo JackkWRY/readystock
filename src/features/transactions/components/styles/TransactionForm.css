@@ -1,0 +1,35 @@
+.transaction-card {
+  max-width: 600px;
+}
+
+.item-details-container {
+  padding: 12px 16px;
+  background: var(--bg-card);
+  border-radius: var(--border-radius-base);
+  margin-bottom: var(--spacing-md);
+}
+
+.item-details-label {
+  color: rgba(255, 255, 255, 0.6) !important;
+}
+
+.item-quantity-text {
+  font-weight: bold;
+}
+
+.item-quantity-warning {
+  color: var(--warning-color) !important;
+}
+
+.item-quantity-success {
+  color: var(--success-color) !important;
+}
+
+.item-category-text {
+  color: var(--text-muted) !important;
+  font-size: 12px !important;
+}
+
+.submit-btn-receive {
+  background: var(--success-color) !important;
+}

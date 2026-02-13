@@ -8,7 +8,9 @@ import {
 } from "@ant-design/icons";
 import dayjs from "dayjs";
 import { useDashboard } from "./hooks/useDashboard";
-import { TransactionType } from "../../constants/inventory";
+import { TH } from "../../constants/th";
+import "./DashboardView.css";
+import { TransactionStatusTag } from "../../components/common/TransactionStatusTag";
 
 const { Title, Text } = Typography;
 
@@ -16,9 +18,9 @@ export const DashboardView: React.FC = () => {
   const { stats, lowStockItems, recentTransactions, isLoading } = useDashboard();
 
   return (
-    <div style={{ padding: 24 }}>
-      <Title level={4} style={{ marginBottom: 24, color: "#fff" }}>
-        ภาพรวมระบบ
+    <div className="dashboard-container">
+      <Title level={4} className="dashboard-title">
+        {TH.DASHBOARD.OVERVIEW}
       </Title>
 
       {/* Statistics Cards */}
@@ -73,7 +75,7 @@ export const DashboardView: React.FC = () => {
         {/* Low Stock Items */}
         <Col xs={24} lg={12}>
           <Card 
-            title={<Space><WarningOutlined style={{ color: "#faad14" }} /> สินค้าใกล้หมดสต็อก</Space>}
+            title={<Space><WarningOutlined style={{ color: "#faad14" }} /> {TH.DASHBOARD.LOW_STOCK}</Space>}
             className="glass-card"
             loading={isLoading}
           >
@@ -84,9 +86,9 @@ export const DashboardView: React.FC = () => {
               size="small"
               scroll={{ y: 300 }}
               columns={[
-                { title: "ชื่อสินค้า", dataIndex: "name" },
+                { title: TH.INVENTORY.NAME, dataIndex: "name" },
                 { 
-                  title: "คงเหลือ", 
+                  title: TH.INVENTORY.QUANTITY, 
                   dataIndex: "quantity",
                   render: (qty, record) => (
                     <Tag color="error">{qty} / {record.min_quantity}</Tag>
@@ -100,7 +102,7 @@ export const DashboardView: React.FC = () => {
         {/* Recent Transactions */}
         <Col xs={24} lg={12}>
           <Card 
-            title={<Space><SwapOutlined /> การเคลื่อนไหวล่าสุด</Space>}
+            title={<Space><SwapOutlined /> {TH.DASHBOARD.RECENT_TRANSACTIONS}</Space>}
             className="glass-card"
             loading={isLoading}
           >
@@ -112,43 +114,23 @@ export const DashboardView: React.FC = () => {
               scroll={{ y: 300 }}
               columns={[
                 { 
-                  title: "เวลา", 
+                  title: TH.TRANSACTION.DATE, 
                   dataIndex: "created_at",
                   width: 140,
                   render: (date) => dayjs(date).format("D MMM BB HH:mm")
                 },
                 { 
-                  title: "รายการ", 
+                  title: TH.TRANSACTION.TYPE, 
                   key: "action",
-                  render: (_, record) => {
-                    let color = "default";
-                    // let icon = null; // Unused
-                    let text: string = record.action_type;
-
-                    if (record.action_type === TransactionType.RECEIVE) {
-                        color = "success";
-                        text = "รับเข้า";
-                    } else if (record.action_type === TransactionType.WITHDRAW) {
-                        color = "error";
-                        text = "เบิกออก";
-                    } else if (record.action_type === TransactionType.UPDATE) {
-                        color = "processing";
-                        text = "ปรับยอด";
-                    } else if (record.action_type === 'CREATE') {
-                        color = "cyan";
-                        text = "สร้างใหม่";
-                    }
-
-                    return (
-                        <Space>
-                            <Tag color={color}>{text}</Tag>
-                            <Text>{record.items?.name || (record.note?.includes("ลบสินค้า") ? "สินค้าถูกลบ" : "-")}</Text>
-                        </Space>
-                    )
-                  }
+                  render: (_, record) => (
+                    <Space>
+                        <TransactionStatusTag type={record.action_type} />
+                        <Text>{record.items?.name || (record.note?.includes("ลบสินค้า") ? "สินค้าถูกลบ" : "-")}</Text>
+                    </Space>
+                  )
                 },
                 {
-                    title: "จำนวน",
+                    title: TH.TRANSACTION.AMOUNT,
                     dataIndex: "amount",
                     align: "right",
                     width: 80,

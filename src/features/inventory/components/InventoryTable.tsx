@@ -7,6 +7,7 @@ import {
   WarningOutlined,
 } from "@ant-design/icons";
 import type { Item } from "../../../types/inventory";
+import { TH } from "../../../constants/th";
 
 interface InventoryTableProps {
   items: Item[];
@@ -15,6 +16,8 @@ interface InventoryTableProps {
   onDelete: (id: number) => void;
   isDeleting?: boolean;
 }
+
+import { TableSkeleton } from "../../../components/common/TableSkeleton";
 
 export const InventoryTable: React.FC<InventoryTableProps> = ({
   items,
@@ -25,7 +28,7 @@ export const InventoryTable: React.FC<InventoryTableProps> = ({
 }) => {
   const columns: ColumnsType<Item> = [
     {
-      title: "ชื่อสินค้า",
+      title: TH.INVENTORY.NAME,
       dataIndex: "name",
       key: "name",
       sorter: (a, b) => a.name.localeCompare(b.name),
@@ -39,14 +42,14 @@ export const InventoryTable: React.FC<InventoryTableProps> = ({
       ),
     },
     {
-      title: "หมวดหมู่",
+      title: TH.INVENTORY.CATEGORY,
       dataIndex: "category",
       key: "category",
       width: 160,
       render: (cat: string | null) => cat || "-",
     },
     {
-      title: "คงเหลือ",
+      title: TH.INVENTORY.QUANTITY,
       dataIndex: "quantity",
       key: "quantity",
       width: 120,
@@ -59,7 +62,7 @@ export const InventoryTable: React.FC<InventoryTableProps> = ({
       ),
     },
     {
-      title: "ขั้นต่ำ",
+      title: TH.INVENTORY.MIN_QUANTITY,
       dataIndex: "min_quantity",
       key: "min_quantity",
       width: 100,
@@ -79,11 +82,11 @@ export const InventoryTable: React.FC<InventoryTableProps> = ({
             size="small"
           />
           <Popconfirm
-            title="ยืนยันการลบ"
-            description="คุณต้องการลบสินค้านี้หรือไม่?"
+            title={TH.INVENTORY.DELETE_ITEM}
+            description={TH.INVENTORY.CONFIRM_DELETE}
             onConfirm={() => onDelete(record.id)}
-            okText="ลบ"
-            cancelText="ยกเลิก"
+            okText={TH.COMMON.CONFIRM}
+            cancelText={TH.COMMON.CANCEL}
             okButtonProps={{ danger: true }}
           >
             <Button
@@ -91,7 +94,7 @@ export const InventoryTable: React.FC<InventoryTableProps> = ({
               icon={<DeleteOutlined />}
               danger
               size="small"
-              loading={isDeleting} // Note: This might show loading on all delete buttons if mostly global, but for row-specific we would need id tracking. For now simpler.
+              loading={isDeleting}
             />
           </Popconfirm>
         </Space>
@@ -99,16 +102,20 @@ export const InventoryTable: React.FC<InventoryTableProps> = ({
     },
   ];
 
+  if (loading) {
+    return <TableSkeleton columns={columns} rowCount={5} />;
+  }
+
   return (
     <Table
       columns={columns}
       dataSource={items}
       rowKey="id"
-      loading={loading}
+      loading={false}
       pagination={{
         pageSize: 10,
         showSizeChanger: true,
-        showTotal: (total) => `ทั้งหมด ${total} รายการ`,
+        showTotal: (total) => `${TH.DASHBOARD.TOTAL_ITEMS} ${total} รายการ`,
       }}
       style={{
         background: "rgba(255,255,255,0.05)",

@@ -2,6 +2,7 @@ import { useEffect } from "react";
 import { Modal, Form, Input, InputNumber, message } from "antd";
 import type { Item, CreateItemInput } from "../../../types/inventory";
 import { useCreateItem, useUpdateItem } from "../hooks/useItems";
+import { TH } from "../../../constants/th";
 
 interface ItemFormModalProps {
   open: boolean;
@@ -37,10 +38,10 @@ export const ItemFormModal: React.FC<ItemFormModalProps> = ({
 
       if (isEditing && editItem) {
         await updateItem.mutateAsync({ id: editItem.id, ...values });
-        messageApi.success("แก้ไขสินค้าสำเร็จ");
+        messageApi.success(TH.COMMON.SUCCESS);
       } else {
         await createItem.mutateAsync(values);
-        messageApi.success("เพิ่มสินค้าสำเร็จ");
+        messageApi.success(TH.COMMON.SUCCESS); // Or specific success message
       }
 
       onClose();
@@ -61,12 +62,12 @@ export const ItemFormModal: React.FC<ItemFormModalProps> = ({
     <>
       {contextHolder}
       <Modal
-        title={isEditing ? "แก้ไขสินค้า" : "เพิ่มสินค้าใหม่"}
+        title={isEditing ? TH.INVENTORY.EDIT_ITEM : TH.INVENTORY.ADD_ITEM}
         open={open}
         onOk={handleSubmit}
         onCancel={handleCancel}
-        okText={isEditing ? "บันทึก" : "เพิ่มสินค้า"}
-        cancelText="ยกเลิก"
+        okText={TH.COMMON.CONFIRM}
+        cancelText={TH.COMMON.CANCEL}
         confirmLoading={isLoading}
         destroyOnHidden
         className="glass-modal"
@@ -83,20 +84,20 @@ export const ItemFormModal: React.FC<ItemFormModalProps> = ({
         >
           <Form.Item
             name="name"
-            label="ชื่อสินค้า"
+            label={TH.INVENTORY.NAME}
             rules={[{ required: true, message: "กรุณากรอกชื่อสินค้า" }]}
           >
             <Input placeholder="เช่น สกรูหัวกลม 3 นิ้ว" />
           </Form.Item>
 
-          <Form.Item name="category" label="หมวดหมู่">
+          <Form.Item name="category" label={TH.INVENTORY.CATEGORY}>
             <Input placeholder="เช่น อุปกรณ์ช่าง" />
           </Form.Item>
 
           <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 16 }}>
             <Form.Item
               name="quantity"
-              label="จำนวนคงเหลือ"
+              label={TH.INVENTORY.QUANTITY}
               rules={[{ required: true, message: "กรุณากรอกจำนวน" }]}
             >
               <InputNumber
@@ -108,7 +109,7 @@ export const ItemFormModal: React.FC<ItemFormModalProps> = ({
 
             <Form.Item
               name="min_quantity"
-              label="จำนวนขั้นต่ำ (แจ้งเตือน)"
+              label={TH.INVENTORY.MIN_QUANTITY}
               rules={[{ required: true, message: "กรุณากรอกจำนวนขั้นต่ำ" }]}
             >
               <InputNumber

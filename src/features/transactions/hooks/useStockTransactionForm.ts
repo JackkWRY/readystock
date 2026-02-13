@@ -3,6 +3,7 @@ import { useItems } from "../../inventory/hooks/useItems";
 import { useReceiveItem, useWithdrawItem } from "./useTransactions";
 import { useAuthStore } from "../../../store/authStore";
 import { TransactionType } from "../../../constants/inventory";
+import { handleError } from "../../../utils/errorHandler";
 
 interface UseStockTransactionFormProps {
   type: TransactionType;
@@ -48,11 +49,7 @@ export const useStockTransactionForm = ({ type, onSuccess }: UseStockTransaction
         onSuccess();
       }
     } catch (error) {
-      if (error instanceof Error) {
-        messageApi.error(error.message);
-      } else {
-        messageApi.error("เกิดข้อผิดพลาด กรุณาลองใหม่อีกครั้ง");
-      }
+      handleError(error, "เกิดข้อผิดพลาด กรุณาลองใหม่อีกครั้ง");
     }
   };
 

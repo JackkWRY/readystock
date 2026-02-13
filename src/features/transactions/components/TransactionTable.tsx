@@ -1,18 +1,12 @@
 import React, { useMemo } from "react";
-import { Table, Tag, Typography } from "antd";
+import { Table, Typography } from "antd";
 import type { ColumnsType } from "antd/es/table";
 import dayjs from "dayjs";
 import "dayjs/locale/th";
 import buddhistEra from "dayjs/plugin/buddhistEra";
-import { 
-  PlusCircleOutlined,
-  SendOutlined,
-  SyncOutlined,
-  AppstoreAddOutlined,
-  DeleteOutlined,
-} from "@ant-design/icons";
 import { TransactionType } from "../../../constants/inventory";
 import type { TransactionWithItem } from "../hooks/useTransactions";
+import { TransactionStatusTag } from "../../../components/common/TransactionStatusTag";
 
 dayjs.extend(buddhistEra);
 dayjs.locale("th");
@@ -27,14 +21,6 @@ interface TransactionTableProps {
   pageSize: number;
   onPageChange: (page: number, pageSize: number) => void;
 }
-
-const typeConfig: Record<string, { color: string; icon: React.ReactNode; label: string }> = {
-  [TransactionType.RECEIVE]: { color: "success", icon: <PlusCircleOutlined />, label: "รับเข้า" },
-  [TransactionType.WITHDRAW]: { color: "error", icon: <SendOutlined />, label: "เบิกออก" },
-  [TransactionType.UPDATE]: { color: "processing", icon: <SyncOutlined />, label: "ปรับยอด" },
-  [TransactionType.DELETE]: { color: "red", icon: <DeleteOutlined />, label: "ลบสินค้า" },
-  'CREATE': { color: "cyan", icon: <AppstoreAddOutlined />, label: "สร้างสินค้า" },
-};
 
 export const TransactionTable: React.FC<TransactionTableProps> = ({
   transactions,
@@ -74,16 +60,7 @@ export const TransactionTable: React.FC<TransactionTableProps> = ({
         key: "action_type",
         width: 120,
         align: "center",
-        render: (type: string) => {
-          const config = typeConfig[type];
-          return config ? (
-            <Tag color={config.color} icon={config.icon}>
-              {config.label}
-            </Tag>
-          ) : (
-            <Tag>{type}</Tag>
-          );
-        },
+        render: (type: string) => <TransactionStatusTag type={type} />,
       },
       {
         title: "จำนวน",

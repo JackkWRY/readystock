@@ -2,6 +2,7 @@ import { create } from 'zustand';
 import { User, Session } from '@supabase/supabase-js';
 import { supabase } from '../lib/supabaseClient';
 import { UserRole } from '../constants/inventory';
+import { getRoleFromSession } from '../utils/auth';
 
 interface AuthState {
   user: User | null;
@@ -12,9 +13,7 @@ interface AuthState {
 }
 
 interface AuthActions {
-  setUser: (user: User | null) => void;
-  setSession: (session: Session | null) => void;
-  setRole: (role: UserRole | null) => void;
+  login: (email: string, password: string) => Promise<void>;
   logout: () => Promise<void>;
   initialize: () => Promise<void>;
 }
@@ -26,11 +25,16 @@ export const useAuthStore = create<AuthState & AuthActions>((set, get) => ({
   isLoading: true,
   isInitialized: false,
 
-  setUser: (user) => set({ user }),
+  login: async (email, password) => {
+    const { error } = await supabase.auth.signInWithPassword({
+      email,
+      password,
+    });
 
-  setSession: (session) => set({ session }),
-
-  setRole: (role) => set({ role }),
+    if (error) throw error;
+    
+    // State update is handled by onAuthStateChange listener
+  },
 
   logout: async () => {
     await supabase.auth.signOut();
@@ -44,26 +48,20 @@ export const useAuthStore = create<AuthState & AuthActions>((set, get) => ({
       const { data: { session } } = await supabase.auth.getSession();
 
       if (session) {
-        // Read role directly from JWT custom claims
-        const role = (session.user.app_metadata?.role as UserRole) || null;
-
         set({
           user: session.user,
           session,
-          role,
+          role: getRoleFromSession(session),
         });
       }
 
       // Listen for auth state changes
       supabase.auth.onAuthStateChange(async (_event, session) => {
         if (session) {
-          // Read role directly from JWT custom claims
-          const role = (session.user.app_metadata?.role as UserRole) || null;
-
           set({
             user: session.user,
             session,
-            role,
+            role: getRoleFromSession(session),
           });
         } else {
           set({ user: null, session: null, role: null });
