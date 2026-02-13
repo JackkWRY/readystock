@@ -64,13 +64,14 @@ create policy "Authenticated users can view transactions" on public.transactions
 create policy "Authenticated users can create transactions" on public.transactions
   for insert with check (auth.role() = 'authenticated');
 
--- 4. Triggers
--- Auto-create profile on signup
+-- 4. Triggers & Functions (Synced with Production DB & Localized to English)
+
+-- A) Handle New User (Profile Creation)
 create or replace function public.handle_new_user()
 returns trigger as $$
 begin
   insert into public.profiles (id, email, role)
-  values (new.id, new.email, 'staff');
+  values (new.id, new.email, 'staff'); -- All new users default to staff role
   return new;
 end;
 $$ language plpgsql security definer;
@@ -79,21 +80,74 @@ create trigger on_auth_user_created
   after insert on auth.users
   for each row execute procedure public.handle_new_user();
 
--- Auto-log CREATE transaction
-create or replace function log_item_creation()
+-- B) Log Item Create/Update
+create or replace function log_item_create_update()
+returns trigger as $$
+BEGIN
+  IF (TG_OP = 'INSERT') THEN
+    INSERT INTO transactions (item_id, action_type, amount, note, user_email)
+    VALUES (NEW.id, 'CREATE', NEW.quantity, 'Item created', COALESCE(auth.jwt() ->> 'email', 'system'));
+  ELSIF (TG_OP = 'UPDATE') THEN
+    IF (OLD.quantity <> NEW.quantity) THEN
+      INSERT INTO transactions (item_id, action_type, amount, note, user_email)
+      VALUES (NEW.id, 'UPDATE', NEW.quantity - OLD.quantity, 
+              'System Update: Qty changed from ' || OLD.quantity || ' to ' || NEW.quantity, 
+              COALESCE(auth.jwt() ->> 'email', 'system'));
+    END IF;
+  END IF;
+  RETURN NEW;
+END;
+$$ language plpgsql security definer;
+
+create trigger trg_log_item_create_update
+  after insert or update on public.items
+  for each row execute procedure log_item_create_update();
+
+-- C) Log Item Deletion
+create or replace function log_item_changes()
+returns trigger as $$
+DECLARE
+  current_user_email text;
+BEGIN
+  -- Get current user email from Auth system
+  current_user_email := auth.jwt() ->> 'email';
+  
+  -- Handle DELETE operation
+  IF (TG_OP = 'DELETE') THEN
+    INSERT INTO transactions (item_id, action_type, amount, note, user_email)
+    VALUES (OLD.id, 'DELETE', OLD.quantity, 'Item deleted: ' || OLD.name, COALESCE(current_user_email, 'system'));
+  END IF;
+  
+  RETURN OLD;
+END;
+$$ language plpgsql security definer;
+
+create trigger trg_log_item_delete
+  after delete on public.items
+  for each row execute procedure log_item_changes();
+
+
+-- D) Role Sync (Profile -> Auth Metadata)
+create or replace function public.sync_user_role()
 returns trigger as $$
 begin
-  insert into public.transactions (item_id, action_type, amount, note, user_email)
-  values (new.id, 'CREATE', new.quantity, 'สร้างสินค้าใหม่', 'system');
+  update auth.users
+  set raw_app_meta_data = 
+    coalesce(raw_app_meta_data, '{}'::jsonb) || 
+    jsonb_build_object('role', new.role)
+  where id = new.id;
   return new;
 end;
 $$ language plpgsql security definer;
 
-create trigger trg_log_item_create
-  after insert on public.items
-  for each row execute procedure log_item_creation();
+drop trigger if exists on_profile_role_change on public.profiles;
+create trigger on_profile_role_change
+  after insert or update of role on public.profiles
+  for each row execute procedure public.sync_user_role();
 
--- 5. RPC Functions
+
+-- 5. RPC Functions (Backend Logic)
+
 create or replace function receive_item(
   t_item_id bigint,
   t_amount bigint,
@@ -121,9 +175,9 @@ create or replace function withdraw_item(
 )
 returns void as $$
 begin
-  -- Check stock
+  -- Check stock availability
   if (select quantity from public.items where id = t_item_id) < t_amount then
-    raise exception 'สินค้าไม่พอ';
+    raise exception 'Insufficient stock quantity';
   end if;
 
   -- Update item quantity
@@ -136,23 +190,3 @@ begin
   values (t_item_id, 'WITHDRAW', -t_amount, t_note, t_user_email);
 end;
 $$ language plpgsql;
-
--- 6. Role Sync Logic (Custom Claims)
--- Function to sync role from profiles to auth.users metadata
-create or replace function public.sync_user_role()
-returns trigger as $$
-begin
-  update auth.users
-  set raw_app_meta_data = 
-    coalesce(raw_app_meta_data, '{}'::jsonb) || 
-    jsonb_build_object('role', new.role)
-  where id = new.id;
-  return new;
-end;
-$$ language plpgsql security definer;
-
--- Trigger to call the function on profile changes
-drop trigger if exists on_profile_role_change on public.profiles;
-create trigger on_profile_role_change
-  after insert or update of role on public.profiles
-  for each row execute procedure public.sync_user_role();
