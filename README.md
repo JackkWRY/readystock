@@ -13,37 +13,46 @@ A modern inventory management desktop application built with **React**, **TypeSc
 - **📊 Transaction History** — Full audit trail with filterable action types (CREATE, RECEIVE, WITHDRAW, UPDATE, DELETE)
 - **⚠️ Low Stock Alerts** — Visual warnings when items fall below minimum quantity thresholds
 - **🔐 Authentication** — Supabase-based login with role-based access (Admin / Staff)
+- **🌍 Internationalization (i18n)** — Dual language support (Thai / English) with easy switching
 - **🗑️ Soft Delete** — Items are never permanently removed; history remains fully trackable
-- **� Dashboard** — Executive summary with visual statistics, low stock alerts, and recent transaction history
-- **�🔄 Real-time Sync** — Automatic cache invalidation via React Query
+- **🤖 Automated Logging** — All transactions (Create, Update, Delete) are logged automatically via Database Triggers
+- **📊 Dashboard** — Executive summary with visual statistics, low stock alerts, and recent transaction history
+- **🔄 Real-time Sync** — Automatic cache invalidation via React Query
 
 ## 🛠️ Tech Stack
 
-| Layer                | Technology                         |
-| -------------------- | ---------------------------------- |
-| **Frontend**         | React 18, TypeScript, Ant Design 6 |
-| **State Management** | Zustand, TanStack React Query      |
-| **Backend**          | Supabase (PostgreSQL, Auth, RPC)   |
-| **Desktop**          | Electron 30                        |
-| **Build Tool**       | Vite 5                             |
+| Layer                    | Technology                         |
+| ------------------------ | ---------------------------------- |
+| **Frontend**             | React 18, TypeScript, Ant Design 6 |
+| **State Management**     | Zustand (Auth/Lang), React Query   |
+| **Internationalization** | Custom i18n Hook + Zustand         |
+| **Backend**              | Supabase (PostgreSQL, Auth, RPC)   |
+| **Desktop**              | Electron 30                        |
+| **Build Tool**           | Vite 5                             |
 
 ## 📁 Project Structure
 
 ```
 src/
-├── features/
-│   ├── auth/             # Login page & auth logic
-│   ├── dashboard/        # Layout, sidebar navigation
-│   ├── inventory/        # Item CRUD, soft delete
-│   │   ├── components/   # ItemFormModal
-│   │   └── hooks/        # useItems, useCreateItem, useUpdateItem, useDeleteItem
-│   ├── transactions/     # Stock in/out, history view
-│   │   ├── components/   # StockTransactionForm
-│   │   └── hooks/        # useTransactions, useReceiveItem, useWithdrawItem
-│   └── settings/         # App settings
-├── lib/                  # Supabase client, React Query client
-├── store/                # Zustand auth store
-└── types/                # TypeScript interfaces (Item, Transaction, etc.)
+├── app/                  # App configuration (routes, providers)
+├── assets/               # Static assets (images, fonts, global icons)
+├── components/           # Shared UI components (Buttons, Layouts, etc.)
+├── constants/            # Global constants & i18n strings (en.ts, th.ts)
+├── features/             # Feature-based modules (Domain Driven Design)
+│   ├── auth/             # Login & Authentication logic
+│   ├── dashboard/        # Dashboard widgets & layout
+│   ├── inventory/        # Item CRUD operations & state
+│   ├── transactions/     # Stock In/Out operations
+│   └── settings/         # Application settings
+├── hooks/                # Global React hooks (useDebounce, useOnClickOutside)
+├── lib/                  # External service clients (Supabase, API, React Query)
+├── services/             # Business Logic & API calls (Pure TS/JS)
+├── store/                # Global State Stores (Zustand)
+├── styles/               # Global styles, themes, and CSS variables
+├── types/                # Shared TypeScript definitions (Interfaces, Types)
+├── utils/                # Utility helpers (formatters, validators)
+├── App.tsx               # Root Component (Providers setup)
+└── main.tsx              # Entry Point
 ```
 
 ## 🚀 Getting Started
@@ -133,13 +142,13 @@ npm run build
 
 ### Database Triggers
 
-| Trigger                  | Event                        | Description                      |
-| ------------------------ | ---------------------------- | -------------------------------- |
-| `trg_log_item_create`    | AFTER INSERT on `items`      | Auto-logs CREATE transactions    |
-| `on_profile_role_change` | INSERT/UPDATE on `profiles`  | Syncs role to JWT Custom Claims  |
-| `on_auth_user_created`   | AFTER INSERT on `auth.users` | Auto-creates public user profile |
+| Trigger                      | Event                        | Description                                                |
+| ---------------------------- | ---------------------------- | ---------------------------------------------------------- |
+| `trg_log_item_create_update` | INSERT OR UPDATE on `items`  | Auto-logs CREATE, UPDATE, and DELETE (Soft Delete) actions |
+| `on_profile_role_change`     | INSERT/UPDATE on `profiles`  | Syncs role to JWT Custom Claims                            |
+| `on_auth_user_created`       | AFTER INSERT on `auth.users` | Auto-creates public user profile                           |
 
-> Stock In/Out and Update transactions are logged by the application code. Soft delete transactions are logged by `useDeleteItem`.
+> **Note:** All transaction logging is handled centrally by Database Triggers. The application uses RPCs for complex logic but skips redundant logging by signaling the trigger via `app.skip_log`.
 
 ### RPC Functions
 
